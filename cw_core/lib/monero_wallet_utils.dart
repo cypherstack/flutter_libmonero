@@ -3,15 +3,7 @@ import 'package:cw_core/pathForWallet.dart';
 import 'package:cw_core/wallet_type.dart';
 import 'package:stackwallet/hive/db.dart';
 
-String backupFileName(String originalPath) {
-  final pathParts = originalPath.split('/');
-  final newName = '#_${pathParts.last}';
-  pathParts.removeLast();
-  pathParts.add(newName);
-  return pathParts.join('/');
-}
-
-Future<void> backupWalletFiles(String name, [int nettype = 0]) async {
+WalletType getType(String name) {
   // Find coin name for nettype (monero, moneroStageNet, moneroTestNet, etc) by calling the database for all wallet names and use the name param to find the coin ... Not a good solution, hacky, need to find better way to find the coin/nettype here
   final _names = DB.instance
       .get<dynamic>(boxName: DB.boxNameAllWalletsData, key: 'names') as Map?;
@@ -23,17 +15,25 @@ Future<void> backupWalletFiles(String name, [int nettype = 0]) async {
     names = Map<String, dynamic>.from(_names);
   }
 
-  var type = WalletType.monero;
-
   if (names[name]['coin'] == 'moneroStageNet') {
-    nettype = 2;
-    type = WalletType.moneroStageNet;
+    return WalletType.moneroStageNet;
   } else if (names[name]['coin'] == 'moneroTestNet') {
-    nettype = 1;
-    type = WalletType.moneroTestNet;
+    return WalletType.moneroTestNet;
+  } else {
+    return WalletType.monero;
   }
+}
 
-  final path = await pathForWallet(name: name, type: type);
+String backupFileName(String originalPath) {
+  final pathParts = originalPath.split('/');
+  final newName = '#_${pathParts.last}';
+  pathParts.removeLast();
+  pathParts.add(newName);
+  return pathParts.join('/');
+}
+
+Future<void> backupWalletFiles(String name) async {
+  final path = await pathForWallet(name: name, type: getType(name));
   final cacheFile = File(path);
   final keysFile = File('$path.keys');
   final addressListFile = File('$path.address.txt');
@@ -54,29 +54,8 @@ Future<void> backupWalletFiles(String name, [int nettype = 0]) async {
   }
 }
 
-Future<void> restoreWalletFiles(String name, [int nettype = 0]) async {
-  // Find coin name for nettype (monero, moneroStageNet, moneroTestNet, etc) by calling the database for all wallet names and use the name param to find the coin ... Not a good solution, hacky, need to find better way to find the coin/nettype here
-  final _names = DB.instance
-      .get<dynamic>(boxName: DB.boxNameAllWalletsData, key: 'names') as Map?;
-
-  Map<String, dynamic> names;
-  if (_names == null) {
-    names = {};
-  } else {
-    names = Map<String, dynamic>.from(_names);
-  }
-
-  var type = WalletType.monero;
-
-  if (names[name]['coin'] == 'moneroStageNet') {
-    nettype = 2;
-    type = WalletType.moneroStageNet;
-  } else if (names[name]['coin'] == 'moneroTestNet') {
-    nettype = 1;
-    type = WalletType.moneroTestNet;
-  }
-
-  final walletDirPath = await pathForWalletDir(name: name, type: type);
+Future<void> restoreWalletFiles(String name) async {
+  final walletDirPath = await pathForWalletDir(name: name, type: getType(name));
   final cacheFilePath = '$walletDirPath/$name';
   final keysFilePath = '$walletDirPath/$name.keys';
   final addressListFilePath = '$walletDirPath/$name.address.txt';
@@ -97,29 +76,8 @@ Future<void> restoreWalletFiles(String name, [int nettype = 0]) async {
   }
 }
 
-Future<bool> backupWalletFilesExists(String name, [int nettype = 0]) async {
-  // Find coin name for nettype (monero, moneroStageNet, moneroTestNet, etc) by calling the database for all wallet names and use the name param to find the coin ... Not a good solution, hacky, need to find better way to find the coin/nettype here
-  final _names = DB.instance
-      .get<dynamic>(boxName: DB.boxNameAllWalletsData, key: 'names') as Map?;
-
-  Map<String, dynamic> names;
-  if (_names == null) {
-    names = {};
-  } else {
-    names = Map<String, dynamic>.from(_names);
-  }
-
-  var type = WalletType.monero;
-
-  if (names[name]['coin'] == 'moneroStageNet') {
-    nettype = 2;
-    type = WalletType.moneroStageNet;
-  } else if (names[name]['coin'] == 'moneroTestNet') {
-    nettype = 1;
-    type = WalletType.moneroTestNet;
-  }
-
-  final walletDirPath = await pathForWalletDir(name: name, type: type);
+Future<bool> backupWalletFilesExists(String name) async {
+  final walletDirPath = await pathForWalletDir(name: name, type: getType(name));
   final cacheFilePath = '$walletDirPath/$name';
   final keysFilePath = '$walletDirPath/$name.keys';
   final addressListFilePath = '$walletDirPath/$name.address.txt';
@@ -132,29 +90,8 @@ Future<bool> backupWalletFilesExists(String name, [int nettype = 0]) async {
       backupAddressListFile.existsSync();
 }
 
-Future<void> removeCache(String name, [int nettype = 0]) async {
-  // Find coin name for nettype (monero, moneroStageNet, moneroTestNet, etc) by calling the database for all wallet names and use the name param to find the coin ... Not a good solution, hacky, need to find better way to find the coin/nettype here
-  final _names = DB.instance
-      .get<dynamic>(boxName: DB.boxNameAllWalletsData, key: 'names') as Map?;
-
-  Map<String, dynamic> names;
-  if (_names == null) {
-    names = {};
-  } else {
-    names = Map<String, dynamic>.from(_names);
-  }
-
-  var type = WalletType.monero;
-
-  if (names[name]['coin'] == 'moneroStageNet') {
-    nettype = 2;
-    type = WalletType.moneroStageNet;
-  } else if (names[name]['coin'] == 'moneroTestNet') {
-    nettype = 1;
-    type = WalletType.moneroTestNet;
-  }
-
-  final path = await pathForWallet(name: name, type: type);
+Future<void> removeCache(String name) async {
+  final path = await pathForWallet(name: name, type: getType(name));
   final cacheFile = File(path);
 
   if (cacheFile.existsSync()) {

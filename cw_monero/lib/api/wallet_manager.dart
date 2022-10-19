@@ -88,7 +88,7 @@ void restoreWalletFromSeedSync(
           pathPointer,
           passwordPointer,
           seedPointer,
-          nettype,
+          nettype ?? 0,
           restoreHeight ?? 0,
           errorMessagePointer) !=
       0;
@@ -174,7 +174,7 @@ void _restoreFromSeed(Map<String, dynamic> args) {
   final password = args['password'] as String;
   final seed = args['seed'] as String;
   final restoreHeight = args['restoreHeight'] as int?;
-  final nettype = args['nettype'] as int;
+  final nettype = args['nettype'] as int?;
 
   restoreWalletFromSeedSync(
       path: path,

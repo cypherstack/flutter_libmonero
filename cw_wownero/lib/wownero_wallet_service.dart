@@ -62,11 +62,11 @@ class WowneroWalletService extends WalletService<
       !File(path).existsSync() && !File('$path.keys').existsSync();
 
   @override
-  WalletType getType(nettype) => WalletType.wownero;
+  WalletType getType([int? nettype]) => WalletType.wownero;
 
   @override
   Future<WowneroWallet> create(WowneroNewWalletCredentials credentials,
-      [int nettype = 0]) async {
+      [int? nettype]) async {
     try {
       final path = await pathForWallet(
           name: credentials.name!,
@@ -89,7 +89,7 @@ class WowneroWalletService extends WalletService<
   }
 
   @override
-  Future<bool> isWalletExist(String name, [int nettype = 0]) async {
+  Future<bool> isWalletExist(String name, [int? nettype = 0]) async {
     try {
       final path = await pathForWallet(
           name: name,
@@ -105,7 +105,7 @@ class WowneroWalletService extends WalletService<
 
   @override
   Future<WowneroWallet> openWallet(String name, String password,
-      [int nettype = 0]) async {
+      [int? nettype = 0]) async {
     try {
       final path = await pathForWallet(
           name: name,
@@ -157,7 +157,7 @@ class WowneroWalletService extends WalletService<
   }
 
   @override
-  Future<void> remove(String wallet, [int nettype = 0]) async {
+  Future<void> remove(String wallet, [int? nettype = 0]) async {
     final path = await pathForWalletDir(
         name: wallet,
         type: getType(
@@ -173,7 +173,7 @@ class WowneroWalletService extends WalletService<
   @override
   Future<WowneroWallet> restoreFromKeys(
       WowneroRestoreWalletFromKeysCredentials credentials,
-      [int nettype = 0]) async {
+      [int? nettype]) async {
     try {
       final path = await pathForWallet(
           name: credentials.name!,
@@ -203,7 +203,7 @@ class WowneroWalletService extends WalletService<
   @override
   Future<WowneroWallet> restoreFromSeed(
       WowneroRestoreWalletFromSeedCredentials credentials,
-      [int nettype = 0]) async {
+      [int? nettype]) async {
     try {
       final path = await pathForWallet(
           name: credentials.name!,
@@ -230,7 +230,7 @@ class WowneroWalletService extends WalletService<
     }
   }
 
-  Future<void> repairOldAndroidWallet(String name, [int nettype = 0]) async {
+  Future<void> repairOldAndroidWallet(String name, [int? nettype = 0]) async {
     try {
       if (!Platform.isAndroid) {
         return;

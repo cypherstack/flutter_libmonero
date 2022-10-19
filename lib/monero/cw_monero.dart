@@ -205,8 +205,8 @@ class CWMonero extends Monero {
       String? address,
       String? password,
       String? language,
-      int? nettype,
-      int? height}) {
+      int nettype = 0,
+      int height = 0}) {
     return MoneroRestoreWalletFromKeysCredentials(
         name: name,
         spendKey: spendKey,
@@ -214,8 +214,8 @@ class CWMonero extends Monero {
         address: address,
         password: password,
         language: language,
-        nettype: nettype,
-        height: height);
+        height: height,
+        nettype: nettype);
   }
 
   WalletCredentials createMoneroRestoreWalletFromSeedCredentials(
@@ -223,7 +223,7 @@ class CWMonero extends Monero {
       String? password,
       int? height,
       String? mnemonic,
-      int? nettype}) {
+      int nettype = 0}) {
     return MoneroRestoreWalletFromSeedCredentials(
         name: name,
         password: password,
@@ -233,7 +233,7 @@ class CWMonero extends Monero {
   }
 
   WalletCredentials createMoneroNewWalletCredentials(
-      {String? name, String? password, String? language, int? nettype}) {
+      {String? name, String? password, String? language, int nettype = 0}) {
     return MoneroNewWalletCredentials(
         name: name, password: password, language: language, nettype: nettype);
   }

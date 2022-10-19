@@ -15,15 +15,19 @@ import 'package:cw_core/wallet_type.dart';
 
 class WowneroNewWalletCredentials extends WalletCredentials {
   WowneroNewWalletCredentials({String? name, String? password, this.language})
-      : super(name: name, password: password);
+      : super(name: name, password: password, nettype: 0);
 
   final String? language;
 }
 
 class WowneroRestoreWalletFromSeedCredentials extends WalletCredentials {
   WowneroRestoreWalletFromSeedCredentials(
-      {String? name, String? password, int? height, this.mnemonic})
-      : super(name: name, password: password, height: height);
+      {String? name,
+      String? password,
+      int? height,
+      this.mnemonic,
+      int nettype = 0})
+      : super(name: name, password: password, height: height, nettype: 0);
 
   final String? mnemonic;
 }
@@ -42,7 +46,7 @@ class WowneroRestoreWalletFromKeysCredentials extends WalletCredentials {
       this.viewKey,
       this.spendKey,
       int? height})
-      : super(name: name, password: password, height: height);
+      : super(name: name, password: password, height: height, nettype: 0);
 
   final String? language;
   final String? address;
@@ -130,8 +134,7 @@ class WowneroWalletService extends WalletService<
       if (!isValid) {
         await restoreOrResetWalletFiles(name);
         wallet.close();
-        return openWallet(name,
-            password); // TODO openWallet(name, password, nettype)) when implementing Wownero testnet
+        return openWallet(name, password, nettype);
       }
 
       await wallet.init();
@@ -148,8 +151,7 @@ class WowneroWalletService extends WalletService<
               (e is WalletOpeningException &&
                   e.message!.contains('does not correspond')))) {
         await restoreOrResetWalletFiles(name);
-        return openWallet(name,
-            password); // TODO openWallet(name, password, nettype)) when implementing Wownero testnet
+        return openWallet(name, password, nettype);
       }
 
       rethrow;

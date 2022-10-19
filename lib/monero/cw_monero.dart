@@ -205,8 +205,8 @@ class CWMonero extends Monero {
       String? address,
       String? password,
       String? language,
-      int nettype = 0,
-      int height = 0}) {
+      int? height,
+      int? nettype}) {
     return MoneroRestoreWalletFromKeysCredentials(
         name: name,
         spendKey: spendKey,
@@ -233,7 +233,7 @@ class CWMonero extends Monero {
   }
 
   WalletCredentials createMoneroNewWalletCredentials(
-      {String? name, String? password, String? language, int nettype = 0}) {
+      {String? name, String? password, String? language, int? nettype}) {
     return MoneroNewWalletCredentials(
         name: name, password: password, language: language, nettype: nettype);
   }

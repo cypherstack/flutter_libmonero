@@ -113,8 +113,8 @@ abstract class Monero {
       String? address,
       String? password,
       String? language,
-      int nettype = 0,
-      int height = 0});
+      int? height,
+      int? nettype});
   WalletCredentials createMoneroRestoreWalletFromSeedCredentials(
       {String? name,
       String? password,
@@ -122,7 +122,7 @@ abstract class Monero {
       String? mnemonic,
       int nettype = 0});
   WalletCredentials createMoneroNewWalletCredentials(
-      {String? name, String? password, String? language, int nettype = 0});
+      {String? name, String? password, String? language, int? nettype});
   Map<String, String?> getKeys(Object wallet);
   Object createMoneroTransactionCreationCredentials(
       {List<Output>? outputs, TransactionPriority? priority});

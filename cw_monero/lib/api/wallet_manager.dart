@@ -146,7 +146,7 @@ void restoreWalletFromKeysSync(
 }
 
 void loadWallet(
-    {required String path, required String password, required int nettype}) {
+    {required String path, required String password, int nettype = 0}) {
   final pathPointer = path.toNativeUtf8();
   final passwordPointer = password.toNativeUtf8();
   final loaded = loadWalletNative(pathPointer, passwordPointer, nettype) != 0;
@@ -215,7 +215,7 @@ bool _isWalletExist(String? path) => isWalletExistSync(path: path!);
 void openWallet(
         {required String path,
         required String password,
-        required int nettype}) async =>
+        int nettype = 0}) async =>
     loadWallet(path: path, password: password, nettype: nettype);
 
 Future<void> openWalletAsync(args) async => compute(_openWallet, args);

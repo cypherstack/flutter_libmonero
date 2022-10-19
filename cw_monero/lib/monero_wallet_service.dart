@@ -15,8 +15,8 @@ import 'package:cw_core/wallet_type.dart';
 
 class MoneroNewWalletCredentials extends WalletCredentials {
   MoneroNewWalletCredentials(
-      {String? name, String? password, int nettype = 0, this.language})
-      : super(name: name, password: password, nettype: nettype);
+      {String? name, String? password, this.language, int? nettype})
+      : super(name: name, password: password, nettype: nettype ?? 0);
 
   final String? language;
 }
@@ -46,9 +46,13 @@ class MoneroRestoreWalletFromKeysCredentials extends WalletCredentials {
       this.address,
       this.viewKey,
       this.spendKey,
-      int nettype = 0,
-      int height = 0})
-      : super(name: name, password: password, height: height, nettype: nettype);
+      int? height,
+      int? nettype})
+      : super(
+            name: name,
+            password: password,
+            height: height,
+            nettype: nettype ?? 0);
 
   final String? language;
   final String? address;
@@ -126,6 +130,7 @@ class MoneroWalletService extends WalletService<
 
       await monero_wallet_manager.openWalletAsync(
           {'path': path, 'password': password, 'nettype': nettype});
+
       final walletInfo = walletInfoSource.values.firstWhereOrNull(
           (info) => info.id == WalletBase.idFor(name, getType(nettype)))!;
       final wallet = MoneroWallet(walletInfo: walletInfo);

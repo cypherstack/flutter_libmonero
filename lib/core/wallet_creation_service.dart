@@ -39,32 +39,29 @@ class WalletCreationService {
     _service = walletService;
   }
 
-  Future<WalletBase> create(WalletCredentials credentials,
-      [int? nettype]) async {
+  Future<WalletBase> create(WalletCredentials credentials) async {
     final password = generatePassword();
     credentials.password = password;
     await keyService!
         .saveWalletPassword(password: password, walletName: credentials.name);
-    return await _service!.create(credentials, nettype);
+    return await _service!.create(credentials);
   }
 
-  Future<WalletBase> restoreFromKeys(WalletCredentials credentials,
-      [int? nettype]) async {
+  Future<WalletBase> restoreFromKeys(WalletCredentials credentials) async {
     final password = generatePassword();
     credentials.password = password;
 
     await keyService!
         .saveWalletPassword(password: password, walletName: credentials.name);
-    return await _service!.restoreFromKeys(credentials, nettype);
+    return await _service!.restoreFromKeys(credentials);
   }
 
-  Future<WalletBase> restoreFromSeed(WalletCredentials credentials,
-      [int? nettype]) async {
+  Future<WalletBase> restoreFromSeed(WalletCredentials credentials) async {
     final password = generatePassword();
     credentials.password = password;
 
     await keyService!
         .saveWalletPassword(password: password, walletName: credentials.name);
-    return await _service!.restoreFromSeed(credentials, nettype);
+    return await _service!.restoreFromSeed(credentials);
   }
 }

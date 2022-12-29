@@ -2,8 +2,11 @@
 
 WORKDIR="$(pwd)/"build
 CW_DIR="$(pwd)"/../../../flutter_libmonero
-CW_EXRTERNAL_DIR=${CW_DIR}/cw_shared_external/ios/External/android
+CW_EXTERNAL_DIR=${CW_DIR}/cw_shared_external/ios/External/android
 CW_MONERO_EXTERNAL_DIR=${CW_DIR}/cw_monero/ios/External/android
+CW_WOWNERO_EXTERNAL_DIR=${CW_DIR}/cw_wownero/ios/External/android
+CW_MONERO_EXTERNAL_DIR=${CW_DIR}/cw_monero/ios/External/android
+if [ -z "$TYPES_OF_BUILD" ]; then TYPES_OF_BUILD="x86_64"; fi
 for arch in $TYPES_OF_BUILD
 do
 
@@ -21,8 +24,8 @@ case $arch in
 		ABI="x86_64";;
 esac
 
-LIB_DIR=${CW_EXRTERNAL_DIR}/${ABI}/lib
-INCLUDE_DIR=${CW_EXRTERNAL_DIR}/${ABI}/include
+LIB_DIR=${CW_EXTERNAL_DIR}/${ABI}/lib
+INCLUDE_DIR=${CW_EXTERNAL_DIR}/${ABI}/include
 
 mkdir -p $LIB_DIR
 mkdir -p $INCLUDE_DIR
@@ -30,9 +33,11 @@ mkdir -p $INCLUDE_DIR
 cp -r ${PREFIX}/lib/* $LIB_DIR
 cp -r ${PREFIX}/include/* $INCLUDE_DIR
 
+done
 
 mkdir -p ${CW_MONERO_EXTERNAL_DIR}/include
+mkdir -p ${CW_WOWNERO_EXTERNAL_DIR}/include
 
-cp $PREFIX/include/monero/wallet2_api.h ${CW_MONERO_EXTERNAL_DIR}/include
-
-done
+cp "${PREFIX}/include/monero/wallet2_api.h" "${CW_MONERO_EXTERNAL_DIR}/include"
+cp "${CW_EXTERNAL_DIR}/x86/include/wownero/wallet2_api.h" "${CW_WOWNERO_EXTERNAL_DIR}/include"
+cp -R "${CW_EXTERNAL_DIR}/x86/include/wownero_seed" "${CW_WOWNERO_EXTERNAL_DIR}/include"

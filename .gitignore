@@ -116,10 +116,6 @@ cw_shared_external/ios/External/
 cw_haven/ios/External/
 cw_haven/android/.externalNativeBuild/
 cw_haven/android/.cxx/
-# cw_wownero/**
-cw_wownero/ios/External/
-cw_wownero/android/.externalNativeBuild/
-cw_wownero/android/.cxx/
 
 lib/bitcoin/bitcoin.dart
 #lib/monero/monero.dart
@@ -137,10 +133,5 @@ assets/images/app_logo.png
 
 build/
 scripts/android/downloads
-lib/git_versions.dart
 scripts/windows/cache/
-
-scripts/mingw64/build/
-scripts/mingw64/cache/
-scripts/mingw64/cmakefiles/x86_64/CMakeLists.txt
-scripts/mingw64/cmakefiles/aarch64/CMakeLists.txt
+lib/git_versions.dart

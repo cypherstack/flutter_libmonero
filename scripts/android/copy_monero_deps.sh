@@ -51,5 +51,5 @@ mkdir -p ${CW_MONERO_EXTERNAL_DIR}/include
 mkdir -p ${CW_WOWNERO_EXTERNAL_DIR}/include
 
 cp $CW_EXRTERNAL_DIR/x86/include/monero/wallet2_api.h ${CW_MONERO_EXTERNAL_DIR}/include
-cp $CW_EXRTERNAL_DIR/x86/include/wownero/wallet2_api.h ${CW_WOWNERO_EXTERNAL_DIR}/include
-cp -R $CW_EXRTERNAL_DIR/x86/include/wownero_seed ${CW_WOWNERO_EXTERNAL_DIR}/include
+#cp $CW_EXRTERNAL_DIR/x86/include/wownero/wallet2_api.h ${CW_WOWNERO_EXTERNAL_DIR}/include
+#cp -R $CW_EXRTERNAL_DIR/x86/include/wownero_seed ${CW_WOWNERO_EXTERNAL_DIR}/include

@@ -66,8 +66,8 @@ abstract class OutputBase with Store {
             _amount = monero.formatterMoneroParseAmount(amount: _cryptoAmount);
             break;
           case WalletType.wownero:
-            _amount =
-                wownero.formatterWowneroParseAmount(amount: _cryptoAmount);
+            // _amount =
+            //     wownero.formatterWowneroParseAmount(amount: _cryptoAmount);
             break;
           default:
             break;
@@ -91,13 +91,13 @@ abstract class OutputBase with Store {
       final fee = _wallet.calculateEstimatedFee(
           monero.getDefaultTransactionPriority(), formattedCryptoAmount);
 
-      if (_wallet.type == WalletType.monero) {
-        return monero.formatterMoneroAmountToDouble(amount: fee);
-      }
-
-      if (_wallet.type == WalletType.wownero) {
-        return wownero.formatterWowneroAmountToDouble(amount: fee);
-      }
+      // if (_wallet.type == WalletType.monero) {
+      return monero.formatterMoneroAmountToDouble(amount: fee);
+      // }
+      //
+      // if (_wallet.type == WalletType.wownero) {
+      //   return wownero.formatterWowneroAmountToDouble(amount: fee);
+      // }
     } catch (e) {
       print(e.toString());
     }

@@ -13,15 +13,15 @@ import 'package:cw_core/wallet_credentials.dart';
 import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_service.dart';
 import 'package:cw_core/wallet_type.dart';
-import 'package:cw_wownero/api/wallet.dart';
-import 'package:cw_wownero/pending_wownero_transaction.dart';
-import 'package:cw_wownero/wownero_wallet.dart';
+import 'package:cw_monero/api/wallet.dart';
+import 'package:cw_monero/pending_monero_transaction.dart';
+import 'package:cw_monero/monero_wallet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_libmonero/core/key_service.dart';
 import 'package:flutter_libmonero/core/wallet_creation_service.dart';
 import 'package:flutter_libmonero/view_model/send/output.dart';
-import 'package:flutter_libmonero/wownero/wownero.dart';
+// import 'package:flutter_libmonero/monero/monero.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
@@ -31,7 +31,7 @@ FlutterSecureStorage? storage;
 WalletService? walletService;
 SharedPreferences? prefs;
 KeyService? keysStorage;
-WowneroWalletBase? walletBase;
+moneroWalletBase? walletBase;
 late WalletCreationService _walletCreationService;
 
 void main() async {
@@ -59,9 +59,9 @@ void main() async {
   Hive.registerAdapter(UnspentCoinsInfoAdapter());
   // }
 
-  wownero.onStartup();
+  monero.onStartup();
   final _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
-  walletService = wownero.createWowneroWalletService(_walletInfoSource);
+  walletService = monero.createmoneroWalletService(_walletInfoSource);
   storage = FlutterSecureStorage();
   prefs = await SharedPreferences.getInstance();
   keysStorage = KeyService(storage!);
@@ -73,22 +73,22 @@ void main() async {
     // }
     String name = "namee${Random().nextInt(10000000)}";
     final dirPath =
-        await pathForWalletDir(name: name, type: WalletType.wownero);
-    final path = await pathForWallet(name: name, type: WalletType.wownero);
+        await pathForWalletDir(name: name, type: WalletType.monero);
+    final path = await pathForWallet(name: name, type: WalletType.monero);
     credentials =
         // //     creating a new wallet
-        // wownero.createWowneroNewWalletCredentials(
+        // monero.createmoneroNewWalletCredentials(
         //     name: name, language: "English");
         // restoring a previous wallet
-        wownero.createWowneroRestoreWalletFromSeedCredentials(
+        monero.createmoneroRestoreWalletFromSeedCredentials(
       name: name,
       // height: 2580000,
       mnemonic: "",
     );
     walletInfo = WalletInfo.external(
-        id: WalletBase.idFor(name, WalletType.wownero),
+        id: WalletBase.idFor(name, WalletType.monero),
         name: name,
-        type: WalletType.wownero,
+        type: WalletType.monero,
         isRecovery: false,
         restoreHeight: credentials.height ?? 0,
         date: DateTime.now(),
@@ -114,7 +114,7 @@ void main() async {
     print(walletInfo.address);
     await _walletInfoSource.add(walletInfo);
     walletBase?.close();
-    walletBase = wallet as WowneroWalletBase;
+    walletBase = wallet as moneroWalletBase;
     print("${walletBase?.seed}");
   } catch (e, s) {
     print(e);
@@ -126,7 +126,7 @@ void main() async {
   //     "${walletBase!.id} walletinfo: ${toStringForinfo(walletBase!.walletInfo)} type: ${walletBase!.type} balance: "
   //     "${walletBase!.balance.entries.first.value.available} currency: ${walletBase!.currency}");
   await walletBase?.connectToNode(
-      node: Node(uri: "eu-west-2.wow.xmr.pm:34568", type: WalletType.wownero));
+      node: Node(uri: "eu-west-2.wow.xmr.pm:34568", type: WalletType.monero));
   walletBase!.rescan(height: credentials.height);
   walletBase!.getNodeHeight();
   runApp(MyApp());
@@ -179,7 +179,7 @@ class _MyAppState extends State<MyApp> {
     String? platformVersion;
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
-      // platformVersion = await FlutterLibwownero.platformVersion;
+      // platformVersion = await FlutterLibmonero.platformVersion;
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
@@ -200,7 +200,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Wownero Plugin example app'),
+          title: const Text('monero Plugin example app'),
         ),
         body: Center(
           child: ListView(
@@ -210,7 +210,7 @@ class _MyAppState extends State<MyApp> {
               TextButton(
                   onPressed: () async {
                     String addr = walletBase!.getTransactionAddress(
-                        wownero.getCurrentAccount(walletBase!).id!, 0);
+                        monero.getCurrentAccount(walletBase!).id!, 0);
                     loggerPrint("addr: $addr");
                     for (var bal in walletBase!.balance!.entries) {
                       loggerPrint(
@@ -226,32 +226,32 @@ class _MyAppState extends State<MyApp> {
                   output.setCryptoAmount("0.00001011");
                   List<Output> outputs = [output];
                   Object tmp =
-                      wownero.createWowneroTransactionCreationCredentials(
+                      monero.createmoneroTransactionCreationCredentials(
                           outputs: outputs,
-                          priority: wownero.getDefaultTransactionPriority());
+                          priority: monero.getDefaultTransactionPriority());
                   loggerPrint(tmp);
                   Future<PendingTransaction> awaitPendingTransaction =
                       walletBase!.createTransaction(tmp);
                   loggerPrint(output);
-                  PendingWowneroTransaction pendingWowneroTransaction =
+                  PendingmoneroTransaction pendingmoneroTransaction =
                       await awaitPendingTransaction
-                          as PendingWowneroTransaction;
-                  loggerPrint(pendingWowneroTransaction);
-                  loggerPrint(pendingWowneroTransaction.id);
-                  loggerPrint(pendingWowneroTransaction.amountFormatted);
-                  loggerPrint(pendingWowneroTransaction.feeFormatted);
-                  loggerPrint(pendingWowneroTransaction
+                          as PendingmoneroTransaction;
+                  loggerPrint(pendingmoneroTransaction);
+                  loggerPrint(pendingmoneroTransaction.id);
+                  loggerPrint(pendingmoneroTransaction.amountFormatted);
+                  loggerPrint(pendingmoneroTransaction.feeFormatted);
+                  loggerPrint(pendingmoneroTransaction
                       .pendingTransactionDescription.amount);
-                  loggerPrint(pendingWowneroTransaction
+                  loggerPrint(pendingmoneroTransaction
                       .pendingTransactionDescription.hash);
-                  loggerPrint(pendingWowneroTransaction
+                  loggerPrint(pendingmoneroTransaction
                       .pendingTransactionDescription.fee);
-                  loggerPrint(pendingWowneroTransaction
+                  loggerPrint(pendingmoneroTransaction
                       .pendingTransactionDescription.pointerAddress);
                   try {
-                    await pendingWowneroTransaction.commit();
+                    await pendingmoneroTransaction.commit();
                     loggerPrint(
-                        "transaction ${pendingWowneroTransaction.id} has been sent");
+                        "transaction ${pendingmoneroTransaction.id} has been sent");
                   } catch (e, s) {
                     loggerPrint("error");
                     loggerPrint(e);
@@ -261,7 +261,7 @@ class _MyAppState extends State<MyApp> {
                 child: Text("send Transaction"),
               ),
               // Text(
-              //     "bob ${wowneroAmountToString(amount: walletBase.transactionHistory.transactions.entries.first.value.amount)}"),
+              //     "bob ${moneroAmountToString(amount: walletBase.transactionHistory.transactions.entries.first.value.amount)}"),
               FutureBuilder(
                 future: walletBase!
                     .getNodeHeight(), // a previously-obtained Future<String> or null

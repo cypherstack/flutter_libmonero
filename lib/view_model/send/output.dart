@@ -6,7 +6,7 @@ import 'package:flutter_libmonero/monero/monero.dart';
 import 'package:intl/intl.dart';
 import 'package:mobx/mobx.dart';
 
-import '../../wownero/wownero.dart';
+// import '../../wownero/wownero.dart';
 
 part 'output.g.dart';
 

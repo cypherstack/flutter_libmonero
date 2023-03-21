@@ -22,9 +22,6 @@ dependencies:
   cw_monero:
     path: ./cw_monero
 
-  cw_wownero:
-    path: ./cw_wownero
-
   cw_shared_external:
     path: ./cw_shared_external
 

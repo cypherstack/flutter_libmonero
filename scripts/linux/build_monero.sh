@@ -1,11 +1,15 @@
 #!/bin/sh
 
 . ./config.sh
-MONERO_BRANCH=release-v0.18.0.0-android
+MONERO_URL="https://github.com/monero-project/monero.git"
+MONERO_VERSION=v0.18.2.0
+MONERO_SHA_HEAD=99be9a044f3854f339548e2d99c539c18d7b1b01
 MONERO_SRC_DIR=${WORKDIR}/monero
+MONERO_BRANCH=main
 
-git clone https://github.com/cake-tech/monero.git ${MONERO_SRC_DIR} --branch ${MONERO_BRANCH}
+git clone ${MONERO_URL} ${MONERO_SRC_DIR} --branch ${MONERO_VERSION}
 cd $MONERO_SRC_DIR
+git reset --hard $MONERO_SHA_HEAD
 git submodule init
 git submodule update
 

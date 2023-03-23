@@ -172,8 +172,6 @@ extern "C"
         uint64_t amount;
         uint64_t fee;
         char *hash;
-        char *hex;
-        char *txKey;
         Monero::PendingTransaction *transaction;
 
         PendingTransactionRaw(Monero::PendingTransaction *_transaction)
@@ -182,8 +180,6 @@ extern "C"
             amount = _transaction->amount();
             fee = _transaction->fee();
             hash = strdup(_transaction->txid()[0].c_str());
-            hex = strdup(_transaction->hex()[0].c_str());
-            txKey = strdup(_transaction->txKey()[0].c_str());
         }
     };
 

@@ -11,6 +11,7 @@ import 'package:cw_monero/api/types.dart';
 import 'package:ffi/ffi.dart';
 import 'package:ffi/ffi.dart' as pkgffi;
 import 'package:flutter/foundation.dart';
+import 'package:stackwallet/utilities/util.dart';
 
 int _boolToInt(bool value) => value ? 1 : 0;
 
@@ -368,7 +369,7 @@ bool priorityInQueue = false;
 
 Future<bool> store({bool prioritySave = false}) async {
   // Delay saves
-  if (Platform.isAndroid) {
+  if (Platform.isAndroid || Util.isDesktop) {
     if (priorityInQueue) {
       return false;
     }

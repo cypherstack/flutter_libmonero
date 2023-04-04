@@ -2,18 +2,20 @@
 
 . ./config.sh
 
-MONERO_URL="https://github.com/cake-tech/monero.git"
-MONERO_DIR_PATH="${EXTERNAL_IOS_SOURCE_DIR}/monero"
-MONERO_VERSION=release-v0.18.0.0
+MONERO_URL="https://github.com/monero-project/monero.git"
+MONERO_VERSION=v0.18.2.0
+MONERO_SHA_HEAD=99be9a044f3854f339548e2d99c539c18d7b1b01
+MONERO_SRC_DIR="${EXTERNAL_IOS_SOURCE_DIR}/monero"
 BUILD_TYPE=release
 PREFIX=${EXTERNAL_IOS_DIR}
 DEST_LIB_DIR=${EXTERNAL_IOS_LIB_DIR}/monero
 DEST_INCLUDE_DIR=${EXTERNAL_IOS_INCLUDE_DIR}/monero
 
-echo "Cloning monero from - $MONERO_URL to - $MONERO_DIR_PATH"		
-git clone $MONERO_URL $MONERO_DIR_PATH
-cd $MONERO_DIR_PATH
+echo "Cloning monero from - $MONERO_URL to - MONERO_SRC_DIR"
+git clone ${MONERO_URL} ${MONERO_SRC_DIR} --branch ${MONERO_VERSION}
+cd $MONERO_SRC_DIR
 git checkout $MONERO_VERSION
+git reset --hard $MONERO_SHA_HEAD
 git submodule update --init --force
 mkdir -p build
 cd ..

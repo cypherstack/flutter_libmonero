@@ -3,8 +3,8 @@
 . ./config.sh
 
 WOWNERO_URL="https://git.wownero.com/wownero/wownero.git"
-WOWNERO_VERSION=v0.11.0.1
-WOWNERO_SHA_HEAD="a21819cc22587e16af00e2c3d8f70156c11310a0"
+WOWNERO_VERSION=v0.10.2.0
+WOWNERO_SHA_HEAD="ab42be18f25c7bdfa6171a890ad11ae262bc44d0"
 WOWNERO_SRC_DIR="${EXTERNAL_IOS_SOURCE_DIR}/wownero"
 
 BUILD_TYPE=release

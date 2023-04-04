@@ -37,11 +37,11 @@ Future<Directory> applicationRootDirectory() async {
 // todo: can merge and do same as regular linux home dir?
   if (bool.fromEnvironment("IS_ARM")) {
     appDirectory = await getApplicationDocumentsDirectory();
-    appDirectory = Directory("${appDirectory.path}/.stackwallet");
+    appDirectory = Directory("${appDirectory.path}/.stackduo");
   } else if (Platform.isLinux) {
-    appDirectory = Directory("${Platform.environment['HOME']}/.stackwallet");
+    appDirectory = Directory("${Platform.environment['HOME']}/.stackduo");
   } else if (Platform.isWindows) {
-// TODO: windows root .stackwallet dir location
+// TODO: windows root .stackduo dir location
     throw Exception("Unsupported platform");
   } else if (Platform.isMacOS) {
 // currently run in ipad mode??

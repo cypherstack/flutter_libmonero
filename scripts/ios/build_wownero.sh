@@ -58,6 +58,7 @@ cmake -D IOS=ON \
     -DUSE_DEVICE_TREZOR=OFF \
 	../..
 make -j$(nproc) && make install
+make wallet_api -j$(nproc)
 find . -path ./lib -prune -o -name '*.a' -exec cp '{}' lib \;
 cp -r ./lib/* $DEST_LIB_DIR
 cp src/cryptonote_basic/libcryptonote_basic.a ${DEST_LIB}

@@ -81,7 +81,7 @@ set_target_properties(boost_wserialization PROPERTIES IMPORTED_LOCATION
 
 add_library(wallet_api STATIC IMPORTED)
 set_target_properties(wallet_api PROPERTIES IMPORTED_LOCATION
-        ${EXTERNAL_LIBS_DIR}/prefix_aarch64/lib/wownero/libwallet_api.a)
+        ${EXTERNAL_LIBS_DIR}/prefix_aarch64/lib/wownero/libwallet_merged.a)
 
 add_library(wallet STATIC IMPORTED)
 set_target_properties(wallet PROPERTIES IMPORTED_LOCATION

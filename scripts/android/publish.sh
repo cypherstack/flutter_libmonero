@@ -36,7 +36,7 @@ do
       git tag "${OS}_${TARGET}_${TAG_COMMIT}"
       git push --tags
     else
-      echo "$TARGET not found!"
+      echo "$TARGET not found, either $TARGET_PATH/$MONERO_BIN or $TARGET_PATH/$WOWNERO_BIN!"
     fi
   fi
 done

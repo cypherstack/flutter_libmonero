@@ -2,8 +2,8 @@
 
 . ./config.sh
 MONERO_URL="https://github.com/monero-project/monero.git"
-MONERO_VERSION=v0.18.2.0
-MONERO_SHA_HEAD=99be9a044f3854f339548e2d99c539c18d7b1b01
+MONERO_VERSION=v0.18.2.2
+MONERO_SHA_HEAD=e06129bb4d1076f4f2cebabddcee09f1e9e30dcc
 MONERO_SRC_DIR=${WORKDIR}/monero
 MONERO_BRANCH=main
 

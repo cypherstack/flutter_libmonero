@@ -24,9 +24,14 @@ UNBOUND_HASH="90831af981221bbce1cd7b15055562336760e484"
 UNBOUND_SRC_DIR=$WORKDIR/unbound-1.17.1
 
 cd $WORKDIR
-rm -rf $UNBOUND_SRC_DIR
-git clone https://github.com/cypherstack/unbound.git -b ${UNBOUND_VERSION} ${UNBOUND_SRC_DIR} # See https://github.com/NLnetLabs/unbound/pull/808; once merged into a release, use that from NLNetLabs/unbound instead of cypherstack/unbound#fix/windows
+if [[ ! -d $UNBOUND_SRC_DIR ]]; then
+	git clone https://github.com/NLnetLabs/unbound ${UNBOUND_SRC_DIR} --branch ${UNBOUND_VERSION}
+fi
 cd $UNBOUND_SRC_DIR
+git reset --hard origin/$UNBOUND_VERSION
+if [[ -v UNBOUND_HASH ]]; then
+	git reset --hard $UNBOUND_HASH
+fi
 test `git rev-parse HEAD` = ${UNBOUND_HASH} || exit 1
 
 CC=x86_64-w64-mingw32.static-gcc

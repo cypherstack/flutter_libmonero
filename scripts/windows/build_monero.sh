@@ -8,9 +8,14 @@ MONERO_BRANCH=release-v0.18.0.0-android
 MONERO_REPO=https://github.com/monero-project/monero.git
 MONERO_BRANCH=release-v0.18.0.0-android
 MONERO_SHA_HEAD="66184f30859796f3c7c22f9497e41b15b5a4a7c9"
+
+MONERO_REPO=https://github.com/monero-project/monero
+MONERO_BRANCH=release-v0.18.2.2
+MONERO_SHA_HEAD="e06129bb4d1076f4f2cebabddcee09f1e9e30dcc"
 '
-MONERO_REPO=https://github.com/cake-tech/monero.git
-MONERO_BRANCH=release-v0.18.0.0-android
+MONERO_REPO=https://github.com/monero-project/monero
+MONERO_BRANCH=v0.18.2.2
+MONERO_SHA_HEAD="e06129bb4d1076f4f2cebabddcee09f1e9e30dcc"
 
 MONERO_SRC_DIR=${WORKDIR}/monero
 
@@ -18,7 +23,6 @@ if [[ ! -d $MONERO_SRC_DIR ]]; then
 	git clone ${MONERO_REPO} ${MONERO_SRC_DIR} --branch ${MONERO_BRANCH}
 fi
 cd $MONERO_SRC_DIR
-# faster alternative than redownloading the monero repo on every build
 git reset --hard origin/$MONERO_BRANCH
 if [[ -v MONERO_SHA_HEAD ]]; then
 	git reset --hard $WOWNERO_SHA_HEAD

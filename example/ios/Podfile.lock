@@ -33,25 +33,6 @@ PODS:
     - Flutter
   - cw_shared_external/Sodium (0.0.1):
     - Flutter
-  - cw_wownero (0.0.2):
-    - cw_shared_external
-    - cw_wownero/Boost (= 0.0.2)
-    - cw_wownero/OpenSSL (= 0.0.2)
-    - cw_wownero/Sodium (= 0.0.2)
-    - cw_wownero/Wownero (= 0.0.2)
-    - Flutter
-  - cw_wownero/Boost (0.0.2):
-    - cw_shared_external
-    - Flutter
-  - cw_wownero/OpenSSL (0.0.2):
-    - cw_shared_external
-    - Flutter
-  - cw_wownero/Sodium (0.0.2):
-    - cw_shared_external
-    - Flutter
-  - cw_wownero/Wownero (0.0.2):
-    - cw_shared_external
-    - Flutter
   - Flutter (1.0.0)
   - flutter_libmonero (0.0.1):
     - Flutter
@@ -67,7 +48,6 @@ PODS:
 DEPENDENCIES:
   - cw_monero (from `.symlinks/plugins/cw_monero/ios`)
   - cw_shared_external (from `.symlinks/plugins/cw_shared_external/ios`)
-  - cw_wownero (from `.symlinks/plugins/cw_wownero/ios`)
   - Flutter (from `Flutter`)
   - flutter_libmonero (from `.symlinks/plugins/flutter_libmonero/ios`)
   - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
@@ -80,8 +60,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/cw_monero/ios"
   cw_shared_external:
     :path: ".symlinks/plugins/cw_shared_external/ios"
-  cw_wownero:
-    :path: ".symlinks/plugins/cw_wownero/ios"
   Flutter:
     :path: Flutter
   flutter_libmonero:
@@ -98,7 +76,6 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   cw_monero: 9816991daff0e3ad0a8be140e31933b5526babd4
   cw_shared_external: 2972d872b8917603478117c9957dfca611845a92
-  cw_wownero: 25174994b62eff7bb5a4aa7e6d1f157699087d8e
   Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
   flutter_libmonero: da68a616b73dd0374a8419c684fa6b6df2c44ffe
   flutter_secure_storage: 7953c38a04c3fdbb00571bcd87d8e3b5ceb9daec

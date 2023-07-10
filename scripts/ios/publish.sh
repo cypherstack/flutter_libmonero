@@ -16,8 +16,6 @@ fi
 
 MONERO_HEADER=libcw_monero.h
 MONERO_BIN=libcw_monero.so
-WOWNERO_HEADER=libcw_monero.h
-WOWNERO_BIN=libcw_wownero.so
 TARGET_PATH=../build
 
 for TARGET in aarch64-apple-ios x86_64-apple-ios
@@ -27,15 +25,13 @@ do
   else
     ARCH_PATH=$TARGET/release
 
-    if [ -f "$TARGET_PATH/$MONERO_BIN" -a -f "$TARGET_PATH/$WOWNERO_BIN" ]; then
+    if [ -f "$TARGET_PATH/$MONERO_BIN" ]; then
       git checkout "${OS}_${TARGET}_${TAG_COMMIT}" || git checkout -b "${OS}_${TARGET}_${TAG_COMMIT}"
       if [ ! -d $OS/$ARCH_PATH ]; then
         mkdir -p $OS/$ARCH_PATH
       fi
       cp -rf $TARGET_PATH/$ARCH_PATH/$MONERO_BIN $OS/$ARCH_PATH/$MONERO_BIN
       cp -rf $TARGET_PATH/../$MONERO_HEADER $OS/$ARCH_PATH/$MONERO_HEADER
-      cp -rf $TARGET_PATH/$ARCH_PATH/$WOWNERO_BIN $OS/$ARCH_PATH/$WOWNERO_BIN
-      cp -rf $TARGET_PATH/../$WOWNERO_HEADER $OS/$ARCH_PATH/$WOWNERO_HEADER
       git add .
       git commit -m "$TARGET commit for $TAG_COMMIT"
       git push origin "${OS}_${TARGET}_${TAG_COMMIT}"

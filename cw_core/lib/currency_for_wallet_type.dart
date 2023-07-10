@@ -11,8 +11,6 @@ CryptoCurrency? currencyForWalletType(WalletType? type) {
       return CryptoCurrency.ltc;
     case WalletType.haven:
       return CryptoCurrency.xhv;
-    case WalletType.wownero:
-      return CryptoCurrency.wow;
     default:
       return null;
   }

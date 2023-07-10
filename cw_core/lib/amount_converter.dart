@@ -1,11 +1,9 @@
-import 'package:intl/intl.dart';
 import 'package:cw_core/crypto_currency.dart';
+import 'package:intl/intl.dart';
 
 class AmountConverter {
   static const _moneroAmountLength = 12;
   static const _moneroAmountDivider = 1000000000000;
-  static const _wowneroAmountLength = 11;
-  static const _wowneroAmountDivider = 100000000000;
   static const _litecoinAmountDivider = 100000000;
   static const _ethereumAmountDivider = 1000000000000000000;
   static const _dashAmountDivider = 100000000;
@@ -18,9 +16,6 @@ class AmountConverter {
   static final _moneroAmountFormat = NumberFormat()
     ..maximumFractionDigits = _moneroAmountLength
     ..minimumFractionDigits = 1;
-  static final _wowneroAmountFormat = NumberFormat()
-    ..maximumFractionDigits = _wowneroAmountLength
-    ..minimumFractionDigits = 1;
 
   static double? amountIntToDouble(CryptoCurrency cryptoCurrency, int amount) {
     switch (cryptoCurrency) {
@@ -28,8 +23,6 @@ class AmountConverter {
         return _moneroAmountToDouble(amount);
       case CryptoCurrency.btc:
         return _bitcoinAmountToDouble(amount);
-      case CryptoCurrency.wow:
-        return _wowneroAmountToDouble(amount);
       case CryptoCurrency.bch:
         return _bitcoinCashAmountToDouble(amount);
       case CryptoCurrency.dash:
@@ -62,8 +55,6 @@ class AmountConverter {
     switch (cryptoCurrency) {
       case CryptoCurrency.xmr:
         return _moneroParseAmount(amount);
-      case CryptoCurrency.wow:
-        return _wowneroParseAmount(amount);
       case CryptoCurrency.xhv:
       case CryptoCurrency.xag:
       case CryptoCurrency.xau:
@@ -90,8 +81,6 @@ class AmountConverter {
         return _moneroAmountToString(amount);
       case CryptoCurrency.btc:
         return _bitcoinAmountToString(amount);
-      case CryptoCurrency.wow:
-        return _wowneroAmountToString(amount);
       case CryptoCurrency.xhv:
       case CryptoCurrency.xag:
       case CryptoCurrency.xau:
@@ -112,7 +101,8 @@ class AmountConverter {
     }
   }
 
-  static double cryptoAmountToDouble({required num amount, required num divider}) =>
+  static double cryptoAmountToDouble(
+          {required num amount, required num divider}) =>
       amount / divider;
 
   static String _moneroAmountToString(int amount) => _moneroAmountFormat.format(
@@ -123,15 +113,6 @@ class AmountConverter {
 
   static int _moneroParseAmount(String amount) =>
       _moneroAmountFormat.parse(amount).toInt();
-
-  static String _wowneroAmountToString(int amount) => _wowneroAmountFormat.format(
-      cryptoAmountToDouble(amount: amount, divider: _wowneroAmountDivider));
-
-  static double _wowneroAmountToDouble(int amount) =>
-      cryptoAmountToDouble(amount: amount, divider: _wowneroAmountDivider);
-
-  static int _wowneroParseAmount(String amount) =>
-      _wowneroAmountFormat.parse(amount).toInt();
 
   static String _bitcoinAmountToString(int amount) =>
       _bitcoinAmountFormat.format(

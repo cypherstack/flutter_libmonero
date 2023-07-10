@@ -15,7 +15,6 @@ else
 fi
 
 MONERO_BIN=libcw_monero.so
-WOWNERO_BIN=libcw_wownero.so
 TARGET=$TYPES_OF_BUILD
 ARCH_PATH=$TARGET
 
@@ -29,10 +28,4 @@ if [ -f "$OS/$ARCH_PATH/$MONERO_BIN" ]; then
   cp -rf "$OS/$ARCH_PATH/$MONERO_BIN" ../build/
 else
   echo "$TARGET not found at $OS/$ARCH_PATH/$MONERO_BIN!"
-fi
-if [ -f "$OS/$ARCH_PATH/$WOWNERO_BIN" ]; then
-  # TODO verify bin checksum hashes
-  cp -rf "$OS/$ARCH_PATH/$WOWNERO_BIN" ../build/
-else
-  echo "$TARGET not found at $OS/$ARCH_PATH/$WOWNERO_BIN!"
 fi

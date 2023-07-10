@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:core';
 import 'dart:core' as core;
 import 'dart:io';
@@ -13,15 +12,15 @@ import 'package:cw_core/wallet_credentials.dart';
 import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_service.dart';
 import 'package:cw_core/wallet_type.dart';
-import 'package:cw_wownero/api/wallet.dart';
-import 'package:cw_wownero/pending_wownero_transaction.dart';
-import 'package:cw_wownero/wownero_wallet.dart';
+import 'package:cw_monero/api/wallet.dart';
+import 'package:cw_monero/monero_wallet.dart';
+import 'package:cw_monero/pending_monero_transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_libmonero/core/key_service.dart';
 import 'package:flutter_libmonero/core/wallet_creation_service.dart';
+import 'package:flutter_libmonero/monero/monero.dart';
 import 'package:flutter_libmonero/view_model/send/output.dart';
-import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
@@ -31,7 +30,7 @@ FlutterSecureStorage? storage;
 WalletService? walletService;
 SharedPreferences? prefs;
 KeyService? keysStorage;
-WowneroWalletBase? walletBase;
+MoneroWalletBase? walletBase;
 late WalletCreationService _walletCreationService;
 
 void main() async {
@@ -59,9 +58,9 @@ void main() async {
   Hive.registerAdapter(UnspentCoinsInfoAdapter());
   // }
 
-  wownero.onStartup();
+  monero.onStartup();
   final _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
-  walletService = wownero.createWowneroWalletService(_walletInfoSource);
+  walletService = monero.createMoneroWalletService(_walletInfoSource);
   storage = FlutterSecureStorage();
   prefs = await SharedPreferences.getInstance();
   keysStorage = KeyService(storage!);
@@ -80,10 +79,9 @@ void main() async {
         // wownero.createWowneroNewWalletCredentials(
         //     name: name, language: "English");
         // restoring a previous wallet
-        wownero.createWowneroRestoreWalletFromSeedCredentials(
+        monero.createMoneroNewWalletCredentials(
       name: name,
       // height: 2580000,
-      mnemonic: "",
     );
     walletInfo = WalletInfo.external(
         id: WalletBase.idFor(name, WalletType.wownero),
@@ -104,17 +102,12 @@ void main() async {
       keyService: keysStorage,
     );
     _walletCreationService.changeWalletType();
-    // To restore from a seed
-    final wallet = await
-        // _walletCreationService.create(credentials);
-        _walletCreationService.restoreFromSeed(credentials);
-    // to create a new wallet
-    // final wallet = await process(credentials);
+    final wallet = await _walletCreationService.create(credentials);
     walletInfo.address = wallet.walletAddresses.address;
     print(walletInfo.address);
     await _walletInfoSource.add(walletInfo);
     walletBase?.close();
-    walletBase = wallet as WowneroWalletBase;
+    walletBase = wallet as MoneroWalletBase;
     print("${walletBase?.seed}");
   } catch (e, s) {
     print(e);
@@ -125,10 +118,11 @@ void main() async {
   // loggerPrint("name: ${walletBase!.name}  seed: ${walletBase!.seed} id: "
   //     "${walletBase!.id} walletinfo: ${toStringForinfo(walletBase!.walletInfo)} type: ${walletBase!.type} balance: "
   //     "${walletBase!.balance.entries.first.value.available} currency: ${walletBase!.currency}");
-  await walletBase?.connectToNode(
-      node: Node(uri: "eu-west-2.wow.xmr.pm:34568", type: WalletType.wownero));
-  walletBase!.rescan(height: credentials.height);
-  walletBase!.getNodeHeight();
+  await walletBase!.connectToNode(
+      node:
+          Node(uri: "monero.stackwallet.com:18081", type: WalletType.wownero));
+  await walletBase!.rescan(height: credentials.height);
+  await walletBase!.getNodeHeight();
   runApp(MyApp());
 }
 
@@ -210,7 +204,7 @@ class _MyAppState extends State<MyApp> {
               TextButton(
                   onPressed: () async {
                     String addr = walletBase!.getTransactionAddress(
-                        wownero.getCurrentAccount(walletBase!).id!, 0);
+                        monero.getCurrentAccount(walletBase!).id!, 0);
                     loggerPrint("addr: $addr");
                     for (var bal in walletBase!.balance!.entries) {
                       loggerPrint(
@@ -226,32 +220,31 @@ class _MyAppState extends State<MyApp> {
                   output.setCryptoAmount("0.00001011");
                   List<Output> outputs = [output];
                   Object tmp =
-                      wownero.createWowneroTransactionCreationCredentials(
+                      monero.createMoneroTransactionCreationCredentials(
                           outputs: outputs,
-                          priority: wownero.getDefaultTransactionPriority());
+                          priority: monero.getDefaultTransactionPriority());
                   loggerPrint(tmp);
                   Future<PendingTransaction> awaitPendingTransaction =
                       walletBase!.createTransaction(tmp);
                   loggerPrint(output);
-                  PendingWowneroTransaction pendingWowneroTransaction =
-                      await awaitPendingTransaction
-                          as PendingWowneroTransaction;
-                  loggerPrint(pendingWowneroTransaction);
-                  loggerPrint(pendingWowneroTransaction.id);
-                  loggerPrint(pendingWowneroTransaction.amountFormatted);
-                  loggerPrint(pendingWowneroTransaction.feeFormatted);
-                  loggerPrint(pendingWowneroTransaction
+                  PendingMoneroTransaction pendingMoneroTransaction =
+                      await awaitPendingTransaction as PendingMoneroTransaction;
+                  loggerPrint(pendingMoneroTransaction);
+                  loggerPrint(pendingMoneroTransaction.id);
+                  loggerPrint(pendingMoneroTransaction.amountFormatted);
+                  loggerPrint(pendingMoneroTransaction.feeFormatted);
+                  loggerPrint(pendingMoneroTransaction
                       .pendingTransactionDescription.amount);
-                  loggerPrint(pendingWowneroTransaction
+                  loggerPrint(pendingMoneroTransaction
                       .pendingTransactionDescription.hash);
-                  loggerPrint(pendingWowneroTransaction
+                  loggerPrint(pendingMoneroTransaction
                       .pendingTransactionDescription.fee);
-                  loggerPrint(pendingWowneroTransaction
+                  loggerPrint(pendingMoneroTransaction
                       .pendingTransactionDescription.pointerAddress);
                   try {
-                    await pendingWowneroTransaction.commit();
+                    await pendingMoneroTransaction.commit();
                     loggerPrint(
-                        "transaction ${pendingWowneroTransaction.id} has been sent");
+                        "transaction ${pendingMoneroTransaction.id} has been sent");
                   } catch (e, s) {
                     loggerPrint("error");
                     loggerPrint(e);

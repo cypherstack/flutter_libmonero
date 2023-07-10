@@ -25,7 +25,7 @@ fi
 cd $MONERO_SRC_DIR
 git reset --hard origin/$MONERO_BRANCH
 if [[ -v MONERO_SHA_HEAD ]]; then
-	git reset --hard $WOWNERO_SHA_HEAD
+	git reset --hard $MONERO_SHA_HEAD
 fi
 git submodule init
 git submodule update

@@ -16,7 +16,6 @@ else
 fi
 
 MONERO_BIN=libcw_monero.so
-WOWNERO_BIN=libcw_wownero.so
 
 for TARGET in arm64-v8a armeabi-v7a x86_64
 do
@@ -31,11 +30,5 @@ do
     cp -rf "$OS/$ARCH_PATH/$MONERO_BIN" ../build/
   else
     echo "$TARGET not found at $OS/$ARCH_PATH/$MONERO_BIN!"
-  fi
-  if [ -f "$OS/$ARCH_PATH/$WOWNERO_BIN" ]; then
-    # TODO verify bin checksum hashes
-    cp -rf "$OS/$ARCH_PATH/$WOWNERO_BIN" ../build/
-  else
-    echo "$TARGET not found at $OS/$ARCH_PATH/$WOWNERO_BIN!"
   fi
 done

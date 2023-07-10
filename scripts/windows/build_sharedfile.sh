@@ -19,16 +19,9 @@ git apply scripts/windows/nice.patch
 cd ${WORKDIR}
 
 mkdir -p monero_build
-mkdir -p wownero_build
 MONERO_BUILD=${WORKDIR}/monero_build
-WOWNERO_BUILD=${WORKDIR}/wownero_build
 
 cd $MONERO_BUILD
 x86_64-w64-mingw32.static-cmake ../../cmakefiles/monero/x86_64
 make -j$(nproc)
 cp libcw_monero.dll ../
-
-cd $WOWNERO_BUILD
-x86_64-w64-mingw32.static-cmake ../../cmakefiles/wownero/x86_64
-make -j$(nproc)
-cp libcw_wownero.dll ../

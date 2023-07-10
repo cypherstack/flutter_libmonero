@@ -6,8 +6,6 @@ import 'package:flutter_libmonero/monero/monero.dart';
 import 'package:intl/intl.dart';
 import 'package:mobx/mobx.dart';
 
-import '../../wownero/wownero.dart';
-
 part 'output.g.dart';
 
 const String cryptoNumberPattern = '0.0';
@@ -65,10 +63,6 @@ abstract class OutputBase with Store {
           case WalletType.monero:
             _amount = monero.formatterMoneroParseAmount(amount: _cryptoAmount);
             break;
-          case WalletType.wownero:
-            _amount =
-                wownero.formatterWowneroParseAmount(amount: _cryptoAmount);
-            break;
           default:
             break;
         }
@@ -93,10 +87,6 @@ abstract class OutputBase with Store {
 
       if (_wallet.type == WalletType.monero) {
         return monero.formatterMoneroAmountToDouble(amount: fee);
-      }
-
-      if (_wallet.type == WalletType.wownero) {
-        return wownero.formatterWowneroAmountToDouble(amount: fee);
       }
     } catch (e) {
       print(e.toString());

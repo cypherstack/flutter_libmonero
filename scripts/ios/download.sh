@@ -20,8 +20,6 @@ fi
 
 MONERO_HEADER=libcw_monero.h
 MONERO_BIN=libcw_monero.a
-WOWNERO_HEADER=libcw_monero.h
-WOWNERO_BIN=libcw_wownero.a
 
 for TARGET in aarch64-apple-ios
 do
@@ -34,13 +32,6 @@ do
         # TODO verify bin checksum hashes
         cp -rf "$OS/$ARCH_PATH/$MONERO_BIN" "../$IOS_LIBS_DIR/$MONERO_BIN"
         cp -rf "$OS/$ARCH_PATH/$MONERO_HEADER" "../$IOS_INCL_DIR/$MONERO_HEADER"
-      else
-        echo "$TARGET not found!"
-      fi
-      if [ -f "$OS/$ARCH_PATH/$WOWNERO_BIN" ]; then
-        # TODO verify bin checksum hashes
-        cp -rf "$OS/$ARCH_PATH/$WOWNERO_BIN" "../$IOS_LIBS_DIR/$WOWNERO_BIN"
-        cp -rf "$OS/$ARCH_PATH/$WOWNERO_HEADER" "../$IOS_INCL_DIR/$WOWNERO_HEADER"
       else
         echo "$TARGET not found!"
       fi

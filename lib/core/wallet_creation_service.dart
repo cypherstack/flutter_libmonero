@@ -1,21 +1,15 @@
 // import 'package:flutter_libmonero/di.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_libmonero/core/key_service.dart';
 import 'package:cw_core/wallet_base.dart';
 import 'package:cw_core/wallet_credentials.dart';
 import 'package:cw_core/wallet_service.dart';
 import 'package:cw_core/wallet_type.dart';
+import 'package:flutter_libmonero/core/key_service.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
 
 class WalletCreationService {
   WalletService? walletService;
   WalletCreationService(
-      {this.secureStorage,
-      this.keyService,
-      this.sharedPreferences,
-      this.walletService}) {
+      {this.secureStorage, this.keyService, this.walletService}) {
     if (type != null) {
       changeWalletType();
     }
@@ -23,7 +17,6 @@ class WalletCreationService {
 
   WalletType type = WalletType.monero;
   final dynamic secureStorage;
-  final SharedPreferences? sharedPreferences;
   final KeyService? keyService;
   WalletService? _service;
 

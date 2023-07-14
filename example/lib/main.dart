@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:core';
 import 'dart:core' as core;
 import 'dart:io';
@@ -25,11 +24,9 @@ import 'package:flutter_libmonero/wownero/wownero.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 FlutterSecureStorage? storage;
 WalletService? walletService;
-SharedPreferences? prefs;
 KeyService? keysStorage;
 WowneroWalletBase? walletBase;
 late WalletCreationService _walletCreationService;
@@ -63,7 +60,6 @@ void main() async {
   final _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
   walletService = wownero.createWowneroWalletService(_walletInfoSource);
   storage = FlutterSecureStorage();
-  prefs = await SharedPreferences.getInstance();
   keysStorage = KeyService(storage!);
   WalletInfo walletInfo;
   late WalletCredentials credentials;
@@ -99,7 +95,6 @@ void main() async {
 
     _walletCreationService = WalletCreationService(
       secureStorage: storage,
-      sharedPreferences: prefs,
       walletService: walletService,
       keyService: keysStorage,
     );

@@ -24,3 +24,5 @@ flutter:
         pluginClass: CwSharedExternalPlugin
       ios:
         pluginClass: CwSharedExternalPlugin
+      macos:
+        pluginClass: CwSharedExternalPlugin

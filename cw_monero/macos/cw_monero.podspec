@@ -15,7 +15,7 @@ A new Flutter plugin project.
 
   s.source           = { :path => '.' }
   s.source_files     = 'Classes/**/*'
-  s.public_header_files = 'Classes/**/*.h, Classes/*.h, External/macos/libs/monero/include/External/ios/**/*.h'
+  s.public_header_files = 'Classes/**/*.h, Classes/*.h, External/macos/libs/monero/include/External/macos/**/*.h'
   s.dependency 'FlutterMacOS'
 
   s.platform = :osx, '10.11'
@@ -24,29 +24,29 @@ A new Flutter plugin project.
   s.libraries = 'iconv'
 
   s.subspec 'OpenSSL' do |openssl|
-    openssl.preserve_paths = '../../../../../cw_shared_external/ios/External/macos/include/**/*.h'
-    openssl.vendored_libraries = '../../../../../cw_shared_external/ios/External/macos/lib/libcrypto.a', '../../../../../cw_shared_external/ios/External/ios/lib/libssl.a'
+    openssl.preserve_paths = '../../../../../cw_shared_external/macos/External/macos/include/**/*.h'
+    openssl.vendored_libraries = '../../../../../cw_shared_external/macos/External/macos/lib/libcrypto.a', '../../../../../cw_shared_external/macos/External/macos/lib/libssl.a'
     openssl.libraries = 'ssl', 'crypto'
     openssl.xcconfig = { 'HEADER_SEARCH_PATHS' => "${PODS_ROOT}/#{s.name}/External/macos/include/**" }
   end
 
   s.subspec 'Sodium' do |sodium|
-    sodium.preserve_paths = '../../../../../cw_shared_external/ios/External/macos/include/**/*.h'
-    sodium.vendored_libraries = '../../../../../cw_shared_external/ios/External/macos/lib/libsodium.a'
+    sodium.preserve_paths = '../../../../../cw_shared_external/macos/External/macos/include/**/*.h'
+    sodium.vendored_libraries = '../../../../../cw_shared_external/macos/External/macos/lib/libsodium.a'
     sodium.libraries = 'sodium'
     sodium.xcconfig = { 'HEADER_SEARCH_PATHS' => "${PODS_ROOT}/#{s.name}/External/macos/include/**" }
   end
 
   s.subspec 'Unbound' do |unbound|
-    unbound.preserve_paths = '../../../../../cw_shared_external/ios/External/macos/include/**/*.h'
-    unbound.vendored_libraries = '../../../../../cw_shared_external/ios/External/macos/lib/libunbound.a'
+    unbound.preserve_paths = '../../../../../cw_shared_external/macos/External/macos/include/**/*.h'
+    unbound.vendored_libraries = '../../../../../cw_shared_external/macos/External/macos/lib/libunbound.a'
     unbound.libraries = 'unbound'
     unbound.xcconfig = { 'HEADER_SEARCH_PATHS' => "${PODS_ROOT}/#{s.name}/External/macos/include/**" }
   end
 
   s.subspec 'Boost' do |boost|
-    boost.preserve_paths = '../../../../../cw_shared_external/ios/External/macos/include/**/*.h',
-    boost.vendored_libraries =  '../../../../../cw_shared_external/ios/External/macos/lib/libboost.a',
+    boost.preserve_paths = '../../../../../cw_shared_external/macos/External/macos/include/**/*.h',
+    boost.vendored_libraries =  '../../../../../cw_shared_external/macos/External/macos/lib/libboost.a',
     boost.libraries = 'boost'
     boost.xcconfig = { 'HEADER_SEARCH_PATHS' => "${PODS_ROOT}/#{s.name}/External/macos/include/**" }
   end

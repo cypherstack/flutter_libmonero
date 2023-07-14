@@ -19,29 +19,29 @@ cd $EXTERNAL_MACOS_LIB_DIR
 #fi
 
 libtool -static -o libboost.a ./libboost_*.a
-#libtool -static -o libwownero.a ./wownero/*.a
+libtool -static -o libwownero.a ./wownero/*.a
 libtool -static -o libmonero.a ./monero/*.a
 
 
-#CW_WOWNERO_EXTERNAL_LIB=../../../../../cw_wownero/ios/External/ios/lib
-#CW_WOWNERO_EXTERNAL_INCLUDE=../../../../../cw_wownero/ios/External/ios/include
+CW_WOWNERO_EXTERNAL_LIB=../../../../../cw_wownero/macos/External/macos/lib
+CW_WOWNERO_EXTERNAL_INCLUDE=../../../../../cw_wownero/macos/External/macos/include
 CW_MONERO_EXTERNAL_LIB=../../../../../cw_monero/macos/External/macos/lib
 CW_MONERO_EXTERNAL_INCLUDE=../../../../../cw_monero/macos/External/macos/include
 
 mkdir -p $CW_MONERO_EXTERNAL_INCLUDE
-#mkdir -p $CW_WOWNERO_EXTERNAL_INCLUDE
-#mkdir -p $CW_WOWNERO_EXTERNAL_LIB
+mkdir -p $CW_WOWNERO_EXTERNAL_INCLUDE
+mkdir -p $CW_WOWNERO_EXTERNAL_LIB
 mkdir -p $CW_MONERO_EXTERNAL_LIB
 
 
 
-#ln ./libboost.a ${CW_WOWNERO_EXTERNAL_LIB}/libboost.a
-#ln ./libcrypto.a ${CW_WOWNERO_EXTERNAL_LIB}/libcrypto.a
-#ln ./libssl.a ${CW_WOWNERO_EXTERNAL_LIB}/libssl.a
-#ln ./libsodium.a ${CW_WOWNERO_EXTERNAL_LIB}/libsodium.a
-#ln ./libunbound.a ${CW_WOWNERO_EXTERNAL_LIB}/libunbound.a
-#cp ./libwownero.a $CW_WOWNERO_EXTERNAL_LIB
-#cp ../include/wownero/* $CW_WOWNERO_EXTERNAL_INCLUDE
+ln ./libboost.a ${CW_WOWNERO_EXTERNAL_LIB}/libboost.a
+ln ./libcrypto.a ${CW_WOWNERO_EXTERNAL_LIB}/libcrypto.a
+ln ./libssl.a ${CW_WOWNERO_EXTERNAL_LIB}/libssl.a
+ln ./libsodium.a ${CW_WOWNERO_EXTERNAL_LIB}/libsodium.a
+ln ./libunbound.a ${CW_WOWNERO_EXTERNAL_LIB}/libunbound.a
+cp ./libwownero.a $CW_WOWNERO_EXTERNAL_LIB
+cp ../include/wownero/* $CW_WOWNERO_EXTERNAL_INCLUDE
 #cp -r ../include/wownero_seed $CW_WOWNERO_EXTERNAL_INCLUDE
 
 ln ./libboost.a ${CW_MONERO_EXTERNAL_LIB}/libboost.a

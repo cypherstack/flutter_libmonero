@@ -29,26 +29,25 @@ if [ -z $INSTALL_PREFIX ]; then
     INSTALL_PREFIX=${ROOT_DIR}/monero
 fi
 
-echo "Building MACOS ${arch}"
+echo "Building MACOS ${ARCH}"
 export CMAKE_INCLUDE_PATH="${PREFIX}/include"
 export CMAKE_LIBRARY_PATH="${PREFIX}/lib"
+rm -r monero/build > /dev/null
 
 if [ "${ARCH}" == "x86_64" ]; then
 	ARCH="x86-64"
 fi
 
-rm -r monero/build > /dev/null
-
 mkdir -p monero/build/${BUILD_TYPE}
 pushd monero/build/${BUILD_TYPE}
-cmake -DARCH=${arch} \
-  -DBUILD_64=ON \
+cmake -DARCH=${ARCH} \
+	-DBUILD_64=ON \
 	-DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
 	-DSTATIC=ON \
 	-DBUILD_GUI_DEPS=ON \
 	-DUNBOUND_INCLUDE_DIR=${EXTERNAL_MACOS_INCLUDE_DIR} \
 	-DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}  \
-  -DUSE_DEVICE_TREZOR=OFF \
+    -DUSE_DEVICE_TREZOR=OFF \
 	../..
 make wallet_api -j$(nproc)
 find . -path ./lib -prune -o -name '*.a' -exec cp '{}' lib \;

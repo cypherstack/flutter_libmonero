@@ -2,7 +2,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 
-class PendingTransactionRaw extends Struct {
+final class PendingTransactionRaw extends Struct {
   @Int64()
   external int amount;
 

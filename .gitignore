@@ -78,6 +78,7 @@
 monero_android/
 android/app/.externalNativeBuild/
 cw_monero/ios/External/
+cw_monero/macos/External/
 cw_monero/cw_monero/android/.externalNativeBuild/
 cw_monero/cw_monero/android/.cxx/
 
@@ -111,6 +112,7 @@ ios/Flutter/.last_build_id
 
 shared_external/**
 cw_shared_external/ios/External/
+cw_shared_external/macos/External/
 # cw_haven/**
 cw_haven/ios/External/
 cw_haven/android/.externalNativeBuild/
@@ -135,19 +137,18 @@ assets/images/app_logo.png
 
 scripts/ios/build
 scripts/ios/cache
-scripts/ios/flutter_liblelantus_bins
+
+scripts/macos/build
+scripts/macos/cache
 
 scripts/android/build
 scripts/android/cache
-scripts/android/flutter_liblelantus_bins
 scripts/android/downloads
 
 scripts/linux/build
 scripts/linux/cache
-scripts/linux/flutter_liblelantus_bins
 
 scripts/windows/build
 scripts/windows/cache
-scripts/windows/flutter_liblelantus_bins
 
 lib/git_versions.dart

@@ -78,8 +78,8 @@ void main() async {
         // restoring a previous wallet
         wownero.createWowneroRestoreWalletFromSeedCredentials(
       name: name,
-      // height: 2580000,
-      mnemonic: "",
+      height: 2580000,
+      mnemonic: ("water " * 25).trim(),
     );
     walletInfo = WalletInfo.external(
         id: WalletBase.idFor(name, WalletType.wownero),
@@ -192,6 +192,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     print(getSyncingHeight());
+    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(

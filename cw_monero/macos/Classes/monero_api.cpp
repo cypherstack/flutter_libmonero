@@ -11,7 +11,7 @@
 #if __APPLE__
 // Fix for randomx on ios
 void __clear_cache(void* start, void* end) { }
-#include "../External/macos/include/wallet2_api.h"
+#include "../../../cw_shared_external/macos/External/macos/include/monero/wallet2_api.h"
 #else
 #include "../External/android/include/wallet2_api.h"
 #endif

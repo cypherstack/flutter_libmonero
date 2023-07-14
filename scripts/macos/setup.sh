@@ -12,7 +12,7 @@
 #sed -i '' "/\/\*${OS}_VERSION/c\\/\*${OS}_VERSION\*\/ const ${OS}_VERSION = \"$COMMIT\";" $VERSIONS_FILE
 cd $EXTERNAL_MACOS_LIB_DIR
 
-#LIBRANDOMX_PATH=${EXTERNAL_IOS_LIB_DIR}/monero/librandomx.a
+#LIBRANDOMX_PATH=${$EXTERNAL_MACOS_LIB_DIR}/monero/librandomx.a
 
 #if [ -f "$LIBRANDOMX_PATH" ]; then
 #    cp $LIBRANDOMX_PATH ./wownero

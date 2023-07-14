@@ -12,5 +12,5 @@ git clone $SODIUM_URL $SODIUM_PATH --branch stable
 cd $SODIUM_PATH
 ./dist-build/osx.sh
 
-mv ${SODIUM_PATH}/libsodium-osx/include/* $EXTERNAL_MACOS_INCLUDE_DIR
-mv ${SODIUM_PATH}/libsodium-osx/lib/* $EXTERNAL_MACOS_LIB_DIR
+cp -R ${SODIUM_PATH}/libsodium-osx/include/* $EXTERNAL_MACOS_INCLUDE_DIR
+cp -R ${SODIUM_PATH}/libsodium-osx/lib/* $EXTERNAL_MACOS_LIB_DIR

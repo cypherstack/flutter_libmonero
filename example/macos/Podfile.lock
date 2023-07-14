@@ -1,4 +1,49 @@
 PODS:
+  - cw_monero (0.0.1):
+    - cw_monero/Boost (= 0.0.1)
+    - cw_monero/Monero (= 0.0.1)
+    - cw_monero/OpenSSL (= 0.0.1)
+    - cw_monero/Sodium (= 0.0.1)
+    - cw_monero/Unbound (= 0.0.1)
+    - FlutterMacOS
+  - cw_monero/Boost (0.0.1):
+    - FlutterMacOS
+  - cw_monero/Monero (0.0.1):
+    - FlutterMacOS
+  - cw_monero/OpenSSL (0.0.1):
+    - FlutterMacOS
+  - cw_monero/Sodium (0.0.1):
+    - FlutterMacOS
+  - cw_monero/Unbound (0.0.1):
+    - FlutterMacOS
+  - cw_shared_external (0.0.1):
+    - cw_shared_external/Boost (= 0.0.1)
+    - cw_shared_external/OpenSSL (= 0.0.1)
+    - cw_shared_external/Sodium (= 0.0.1)
+    - FlutterMacOS
+  - cw_shared_external/Boost (0.0.1):
+    - FlutterMacOS
+  - cw_shared_external/OpenSSL (0.0.1):
+    - FlutterMacOS
+  - cw_shared_external/Sodium (0.0.1):
+    - FlutterMacOS
+  - cw_wownero (0.0.1):
+    - cw_wownero/Boost (= 0.0.1)
+    - cw_wownero/OpenSSL (= 0.0.1)
+    - cw_wownero/Sodium (= 0.0.1)
+    - cw_wownero/Unbound (= 0.0.1)
+    - cw_wownero/Wownero (= 0.0.1)
+    - FlutterMacOS
+  - cw_wownero/Boost (0.0.1):
+    - FlutterMacOS
+  - cw_wownero/OpenSSL (0.0.1):
+    - FlutterMacOS
+  - cw_wownero/Sodium (0.0.1):
+    - FlutterMacOS
+  - cw_wownero/Unbound (0.0.1):
+    - FlutterMacOS
+  - cw_wownero/Wownero (0.0.1):
+    - FlutterMacOS
   - flutter_secure_storage_macos (6.1.1):
     - FlutterMacOS
   - FlutterMacOS (1.0.0)
@@ -9,12 +54,21 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
+  - cw_monero (from `Flutter/ephemeral/.symlinks/plugins/cw_monero/macos`)
+  - cw_shared_external (from `Flutter/ephemeral/.symlinks/plugins/cw_shared_external/macos`)
+  - cw_wownero (from `Flutter/ephemeral/.symlinks/plugins/cw_wownero/macos`)
   - flutter_secure_storage_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_macos/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
   - stack_wallet_backup (from `Flutter/ephemeral/.symlinks/plugins/stack_wallet_backup/macos`)
 
 EXTERNAL SOURCES:
+  cw_monero:
+    :path: Flutter/ephemeral/.symlinks/plugins/cw_monero/macos
+  cw_shared_external:
+    :path: Flutter/ephemeral/.symlinks/plugins/cw_shared_external/macos
+  cw_wownero:
+    :path: Flutter/ephemeral/.symlinks/plugins/cw_wownero/macos
   flutter_secure_storage_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_macos/macos
   FlutterMacOS:
@@ -25,6 +79,9 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/stack_wallet_backup/macos
 
 SPEC CHECKSUMS:
+  cw_monero: a3442556ad3c06365c912735e4a23942a28692b1
+  cw_shared_external: 1f631d1132521baac5f4caed43176fa10d4e0d8b
+  cw_wownero: b4adb1e701fc363de27fa222fcaf4eff6f5fa63a
   flutter_secure_storage_macos: d56e2d218c1130b262bef8b4a7d64f88d7f9c9ea
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
   path_provider_foundation: 29f094ae23ebbca9d3d0cec13889cd9060c0e943

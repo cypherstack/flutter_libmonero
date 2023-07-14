@@ -18,3 +18,4 @@ esac
 ./build_unbound.sh
 ./build_sodium.sh
 ./build_wownero.sh
+./build_wownero_seed.sh

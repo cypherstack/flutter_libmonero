@@ -42,7 +42,7 @@ rm -r wownero/build > /dev/null
 
 mkdir -p wownero/build/${BUILD_TYPE}
 pushd wownero/build/${BUILD_TYPE}
-cmake -DARCH=${arch} \
+cmake -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_OSX_MIN_VERSION=11.0 \
   -DBUILD_64=ON \
 	-DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
 	-DSTATIC=ON \

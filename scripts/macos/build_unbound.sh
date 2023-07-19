@@ -13,6 +13,9 @@ git clone https://github.com/NLnetLabs/unbound.git -b ${UNBOUND_VERSION} ${UNBOU
 cd $UNBOUND_DIR_PATH
 test `git rev-parse HEAD` = ${UNBOUND_HASH} || exit 1
 
+export CFLAGS="-arch x86_64 -arch arm64"
+export CXXFLAGS="-arch x86_64 -arch arm64"
+export LDFLAGS="-arch x86_64 -arch arm64"
 ./configure --prefix="${EXTERNAL_MACOS_DIR}" \
 			--with-ssl="${EXTERNAL_MACOS_DIR}" \
 			--with-libexpat="${EXTERNAL_MACOS_DIR}" \

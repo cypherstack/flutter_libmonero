@@ -1,17 +1,23 @@
 #!/bin/sh
 
-ARCH=`uname -m`
+#ARCH=`uname -m`
 
 . ./config.sh
 
-case $ARCH in
-	arm64)
-		./build_openssl_arm64.sh
-		./build_boost_arm64.sh;;
-	x86_64)
-		./build_openssl_x86_64.sh
-		./build_boost_x86_64.sh;;
-esac
+#case $ARCH in
+#	arm64)
+#		./build_openssl_arm64.sh
+#		./build_boost_arm64.sh;;
+#	x86_64)
+#		./build_openssl_x86_64.sh
+#		./build_boost_x86_64.sh;;
+#esac
+
+. ./build_openssl_common.sh
+build_openssl_universal
+
+. ./build_boost_common.sh
+build_boost_universal
 
 ./build_zmq.sh
 ./build_expat.sh

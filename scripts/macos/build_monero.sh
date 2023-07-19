@@ -40,7 +40,7 @@ fi
 
 mkdir -p monero/build/${BUILD_TYPE}
 pushd monero/build/${BUILD_TYPE}
-cmake -DARCH=${ARCH} \
+cmake -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_OSX_MIN_VERSION=11.0 \
 	-DBUILD_64=ON \
 	-DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
 	-DSTATIC=ON \

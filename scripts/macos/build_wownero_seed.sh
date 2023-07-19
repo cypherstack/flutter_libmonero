@@ -36,7 +36,7 @@ if [ "${ARCH}" == "x86_64" ]; then
 fi
 
 #cmake -Bbuild -DCMAKE_INSTALL_PREFIX="${PREFIX}" -DCMAKE_SYSTEM_NAME="OSX" -DCMAKE_OSX_ARCHITECTURES="${arch}" .
-cmake -Bbuild -DCMAKE_INSTALL_PREFIX="${PREFIX}" .
+cmake -Bbuild -DCMAKE_INSTALL_PREFIX="${PREFIX}" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_OSX_MIN_VERSION=11.0 .
 make -Cbuild -j$(nproc)
 make -Cbuild install
 cp $CMAKE_LIBRARY_PATH/libwownero-seed.a $CMAKE_LIBRARY_PATH/wownero/libwownero-seed.a

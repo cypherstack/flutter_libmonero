@@ -11,6 +11,9 @@ cd $EXPAT_SRC_DIR
 test `git rev-parse HEAD` = ${EXPAT_HASH} || exit 1
 cd $EXPAT_SRC_DIR/expat
 
+export CFLAGS="-arch x86_64 -arch arm64"
+export CXXFLAGS="-arch x86_64 -arch arm64"
+export LDFLAGS="-arch x86_64 -arch arm64"
 ./buildconf.sh
 ./configure --enable-static --disable-shared --prefix=${EXTERNAL_MACOS_DIR}
 make

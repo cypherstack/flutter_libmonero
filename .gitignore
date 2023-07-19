@@ -140,6 +140,7 @@ scripts/ios/cache
 
 scripts/macos/build
 scripts/macos/cache
+scripts/macos/git_commit_version.txt
 
 scripts/android/build
 scripts/android/cache

@@ -7,5 +7,6 @@
 build/
 
 ios/External/
+macos/External/
 android/.externalNativeBuild/
 android/.cxx/

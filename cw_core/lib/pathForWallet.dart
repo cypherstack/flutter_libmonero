@@ -44,8 +44,8 @@ Future<Directory> applicationRootDirectory() async {
 // TODO: windows root .stackwallet dir location
     throw Exception("Unsupported platform");
   } else if (Platform.isMacOS) {
-// currently run in ipad mode??
-    throw Exception("Unsupported platform");
+    appDirectory = await getLibraryDirectory();
+    appDirectory = Directory("${appDirectory.path}/stackwallet");
   } else if (Platform.isIOS) {
 // todo: check if we need different behaviour here
     if (await isDesktop()) {

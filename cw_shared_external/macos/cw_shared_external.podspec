@@ -33,11 +33,4 @@ Pod::Spec.new do |s|
     boost.libraries = 'boost'
     boost.xcconfig = { 'HEADER_SEARCH_PATHS' => "${PODS_ROOT}/#{s.name}/External/macos/include/**" }
   end
-
-  s.subspec 'Sodium' do |sodium|
-    sodium.preserve_paths = 'External/macos/include/**/*.h'
-    sodium.vendored_libraries = 'External/macos/lib/libsodium.a'
-    sodium.libraries = 'sodium'
-    sodium.xcconfig = { 'HEADER_SEARCH_PATHS' => "${PODS_ROOT}/#{s.name}/External/macos/include/**" }
-  end
 end

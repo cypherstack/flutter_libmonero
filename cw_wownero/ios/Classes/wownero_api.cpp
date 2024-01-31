@@ -208,6 +208,7 @@ extern "C"
     std::mutex store_lock;
     bool is_storing = false;
 
+    DLL_EXPORT
     void change_current_wallet(Monero::Wallet *wallet)
     {
         m_wallet = wallet;
@@ -242,11 +243,13 @@ extern "C"
         }
     }
 
+    DLL_EXPORT
     Monero::Wallet *get_current_wallet()
     {
         return m_wallet;
     }
 
+    DLL_EXPORT
     bool create_14_word_wallet(char *path, char *password, char *language, int32_t networkType, char *error)
     {
         Monero::NetworkType _networkType = static_cast<Monero::NetworkType>(networkType);
@@ -292,6 +295,7 @@ extern "C"
         return true;
     }
 
+    DLL_EXPORT
     bool create_25_word_wallet(char *path, char *password, char *language, int32_t networkType, char *error)
     {
         Monero::NetworkType _networkType = static_cast<Monero::NetworkType>(networkType);
@@ -437,6 +441,7 @@ extern "C"
         return !(status != Monero::Wallet::Status_Ok || !errorString.empty());
     }
 
+    DLL_EXPORT
     char *error_string() {
         return strdup(get_current_wallet()->errorString().c_str());
     }
@@ -447,6 +452,7 @@ extern "C"
         return Monero::WalletManagerFactory::getWalletManager()->walletExists(std::string(path));
     }
 
+    DLL_EXPORT
     void close_current_wallet()
     {
         Monero::WalletManagerFactory::getWalletManager()->closeWallet(get_current_wallet());
@@ -459,21 +465,25 @@ extern "C"
         return strdup(get_current_wallet()->filename().c_str());
     }
 
+    DLL_EXPORT
     char *secret_view_key()
     {
         return strdup(get_current_wallet()->secretViewKey().c_str());
     }
 
+    DLL_EXPORT
     char *public_view_key()
     {
         return strdup(get_current_wallet()->publicViewKey().c_str());
     }
 
+    DLL_EXPORT
     char *secret_spend_key()
     {
         return strdup(get_current_wallet()->secretSpendKey().c_str());
     }
 
+    DLL_EXPORT
     char *public_spend_key()
     {
         return strdup(get_current_wallet()->publicSpendKey().c_str());
@@ -611,6 +621,7 @@ extern "C"
         store_lock.unlock();
     }
 
+    DLL_EXPORT
     bool transaction_create(char *address, char *payment_id, char *amount,
                                               uint8_t priority_raw, uint32_t subaddr_account, Utf8Box &error, PendingTransactionRaw &pendingTransaction)
     {
@@ -651,6 +662,7 @@ extern "C"
         return true;
     }
 
+    DLL_EXPORT
     bool transaction_create_mult_dest(char **addresses, char *payment_id, char **amounts, uint32_t size,
                                                   uint8_t priority_raw, uint32_t subaddr_account, Utf8Box &error, PendingTransactionRaw &pendingTransaction)
     {
@@ -693,6 +705,7 @@ extern "C"
         return true;
     }
 
+    DLL_EXPORT
     bool transaction_commit(PendingTransactionRaw *transaction, Utf8Box &error)
     {
         bool committed = transaction->transaction->commit();
@@ -707,6 +720,7 @@ extern "C"
         return committed;
     }
 
+    DLL_EXPORT
     uint64_t get_node_height_or_update(uint64_t base_eight)
     {
         if (m_cached_syncing_blockchain_height < base_eight) {
@@ -716,6 +730,7 @@ extern "C"
         return m_cached_syncing_blockchain_height;
     }
 
+    DLL_EXPORT
     uint64_t get_syncing_height()
     {
         if (m_listener == nullptr) {
@@ -736,6 +751,7 @@ extern "C"
         return height;
     }
 
+    DLL_EXPORT
     uint64_t is_needed_to_refresh()
     {
         if (m_listener == nullptr) {
@@ -751,6 +767,7 @@ extern "C"
         return should_refresh;
     }
 
+    DLL_EXPORT
     uint8_t is_new_transaction_exist()
     {
         if (m_listener == nullptr) {
@@ -767,6 +784,7 @@ extern "C"
         return is_new_transaction_exist;
     }
 
+    DLL_EXPORT
     void set_listener()
     {
         m_last_known_wallet_height = 0;
@@ -780,6 +798,7 @@ extern "C"
         get_current_wallet()->setListener(m_listener);
     }
 
+    DLL_EXPORT
     int64_t *subaddrress_get_all()
     {
         std::vector<Monero::SubaddressRow *> _subaddresses = m_subaddress->getAll();
@@ -796,33 +815,39 @@ extern "C"
         return subaddresses;
     }
 
+    DLL_EXPORT
     int32_t subaddrress_size()
     {
         std::vector<Monero::SubaddressRow *> _subaddresses = m_subaddress->getAll();
         return _subaddresses.size();
     }
 
+    DLL_EXPORT
     void subaddress_add_row(uint32_t accountIndex, char *label)
     {
         m_subaddress->addRow(accountIndex, std::string(label));
     }
 
+    DLL_EXPORT
     void subaddress_set_label(uint32_t accountIndex, uint32_t addressIndex, char *label)
     {
         m_subaddress->setLabel(accountIndex, addressIndex, std::string(label));
     }
 
+    DLL_EXPORT
     void subaddress_refresh(uint32_t accountIndex)
     {
         m_subaddress->refresh(accountIndex);
     }
 
+    DLL_EXPORT
     int32_t account_size()
     {
         std::vector<Monero::SubaddressAccountRow *> _accocunts = m_account->getAll();
         return _accocunts.size();
     }
 
+    DLL_EXPORT
     int64_t *account_get_all()
     {
         std::vector<Monero::SubaddressAccountRow *> _accocunts = m_account->getAll();
@@ -839,21 +864,25 @@ extern "C"
         return accocunts;
     }
 
+    DLL_EXPORT
     void account_add_row(char *label)
     {
         m_account->addRow(std::string(label));
     }
 
+    DLL_EXPORT
     void account_set_label_row(uint32_t account_index, char *label)
     {
         m_account->setLabel(account_index, label);
     }
 
+    DLL_EXPORT
     void account_refresh()
     {
         m_account->refresh();
     }
 
+    DLL_EXPORT
     int64_t *transactions_get_all()
     {
         std::vector<Monero::TransactionInfo *> transactions = m_transaction_history->getAll();
@@ -870,16 +899,19 @@ extern "C"
         return transactionAddresses;
     }
 
+    DLL_EXPORT
     void transactions_refresh()
     {
         m_transaction_history->refresh();
     }
 
+    DLL_EXPORT
     int64_t transactions_count()
     {
         return m_transaction_history->count();
     }
 
+    DLL_EXPORT
     int LedgerExchange(
         unsigned char *command,
         unsigned int cmd_len,
@@ -889,27 +921,32 @@ extern "C"
         return -1;
     }
 
+    DLL_EXPORT
     int LedgerFind(char *buffer, size_t len)
     {
         return -1;
     }
 
+    DLL_EXPORT
     void on_startup()
     {
         Monero::Utils::onStartup();
         Monero::WalletManagerFactory::setLogLevel(4);
     }
 
+    DLL_EXPORT
     void rescan_blockchain()
     {
         m_wallet->rescanBlockchainAsync();
     }
 
+    DLL_EXPORT
     char * get_tx_key(char * txId)
     {
         return strdup(m_wallet->getTxKey(std::string(txId)).c_str());
     }
 
+    DLL_EXPORT
     char *get_subaddress_label(uint32_t accountIndex, uint32_t addressIndex)
     {
         return strdup(get_current_wallet()->getSubaddressLabel(accountIndex, addressIndex).c_str());

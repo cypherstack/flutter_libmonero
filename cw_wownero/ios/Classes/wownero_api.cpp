@@ -27,7 +27,7 @@ void __clear_cache(void* start, void* end) { }
 void nice(int niceness); // Prototype definition
 
 // Define a macro for exporting functions on Windows.
-#if defined(_WIN32) || defined(_WIN64) || defined(__declspec)
+#if defined(_WIN32) || defined(_WIN64) || defined(__declspec) || defined(BUILDING_FOR_WINDOWS)
 #define NICE(pri) 
 #define DLL_EXPORT __declspec(dllexport)
 #else

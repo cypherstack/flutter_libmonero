@@ -3,39 +3,46 @@
 #include <stdbool.h>
 #include "CwWalletListener.h"
 
+// Define a macro for exporting functions on Windows.
+#ifdef _WIN32
+#define DLL_EXPORT __declspec(dllexport)
+#else
+#define DLL_EXPORT
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-bool create_wallet(char *path, char *password, char *language, int32_t networkType, char *error);
-bool restore_wallet_from_14_word_seed(char *path, char *password, char *seed, int32_t networkType, char *error);
-bool restore_wallet_from_25_word_seed(char *path, char *password, char *seed, int32_t networkType, uint64_t restoreHeight, char *error);
-bool restore_wallet_from_keys(char *path, char *password, char *language, char *address, char *viewKey, char *spendKey, int32_t networkType, uint64_t restoreHeight, char *error);
-void load_wallet(char *path, char *password, int32_t nettype);
-bool is_wallet_exist(char *path);
+DLL_EXPORT bool create_wallet(char *path, char *password, char *language, int32_t networkType, char *error);
+DLL_EXPORT bool restore_wallet_from_14_word_seed(char *path, char *password, char *seed, int32_t networkType, char *error);
+DLL_EXPORT bool restore_wallet_from_25_word_seed(char *path, char *password, char *seed, int32_t networkType, uint64_t restoreHeight, char *error);
+DLL_EXPORT bool restore_wallet_from_keys(char *path, char *password, char *language, char *address, char *viewKey, char *spendKey, int32_t networkType, uint64_t restoreHeight, char *error);
+DLL_EXPORT void load_wallet(char *path, char *password, int32_t nettype);
+DLL_EXPORT bool is_wallet_exist(char *path);
 
-char *get_filename();
-const char *seed();
-char *get_address(uint32_t account_index, uint32_t address_index);
-uint64_t get_full_balance(uint32_t account_index);
-uint64_t get_unlocked_balance(uint32_t account_index);
-uint64_t get_current_height();
-uint64_t get_node_height();
-uint64_t get_seed_height(char *seed);
+DLL_EXPORT char *get_filename();
+DLL_EXPORT const char *seed();
+DLL_EXPORT char *get_address(uint32_t account_index, uint32_t address_index);
+DLL_EXPORT uint64_t get_full_balance(uint32_t account_index);
+DLL_EXPORT uint64_t get_unlocked_balance(uint32_t account_index);
+DLL_EXPORT uint64_t get_current_height();
+DLL_EXPORT uint64_t get_node_height();
+DLL_EXPORT uint64_t get_seed_height(char *seed);
 
-bool is_connected();
+DLL_EXPORT bool is_connected();
 
-bool setup_node(char *address, char *login, char *password, bool use_ssl, bool is_light_wallet, char *error);
-bool connect_to_node(char *error);
-void start_refresh();
-void set_refresh_from_block_height(uint64_t height);
-void set_recovering_from_seed(bool is_recovery);
-void store(char *path);
+DLL_EXPORT bool setup_node(char *address, char *login, char *password, bool use_ssl, bool is_light_wallet, char *error);
+DLL_EXPORT bool connect_to_node(char *error);
+DLL_EXPORT void start_refresh();
+DLL_EXPORT void set_refresh_from_block_height(uint64_t height);
+DLL_EXPORT void set_recovering_from_seed(bool is_recovery);
+DLL_EXPORT void store(char *path);
 
-void set_trusted_daemon(bool arg);
-bool trusted_daemon();
+DLL_EXPORT void set_trusted_daemon(bool arg);
+DLL_EXPORT bool trusted_daemon();
 
-bool validate_address(char *address);
+DLL_EXPORT bool validate_address(char *address);
 
 #ifdef __cplusplus
 }

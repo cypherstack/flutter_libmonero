@@ -21,11 +21,14 @@ void __clear_cache(void* start, void* end) { }
 
 void nice(int niceness); // Prototype definition
 
-#ifdef _WIN32
-#define NICE(pri)  
+// Define a macro for exporting functions on Windows.
+#if defined(_WIN32) || defined(_WIN64) || defined(__declspec)
+#define NICE(pri) 
+#define DLL_EXPORT __declspec(dllexport)
 #else
 #include <unistd.h>
 #define NICE(pri) nice(pri) 
+#define DLL_EXPORT
 #endif
 
 using namespace std::chrono_literals;
@@ -239,6 +242,7 @@ extern "C"
         return m_wallet;
     }
 
+    DLL_EXPORT
     bool create_wallet(char *path, char *password, char *language, int32_t networkType, char *error)
     {
         Monero::WalletManagerFactory::setLogLevel(4);
@@ -263,6 +267,7 @@ extern "C"
         return true;
     }
 
+    DLL_EXPORT
     bool restore_wallet_from_seed(char *path, char *password, char *seed, int32_t networkType, uint64_t restoreHeight, char *error)
     {
         Monero::NetworkType _networkType = static_cast<Monero::NetworkType>(networkType);
@@ -288,6 +293,7 @@ extern "C"
         return true;
     }
 
+    DLL_EXPORT
     bool restore_wallet_from_keys(char *path, char *password, char *language, char *address, char *viewKey, char *spendKey, int32_t networkType, uint64_t restoreHeight, char *error)
     {
         Monero::NetworkType _networkType = static_cast<Monero::NetworkType>(networkType);
@@ -316,6 +322,7 @@ extern "C"
         return true;
     }
 
+    DLL_EXPORT
     bool load_wallet(char *path, char *password, int32_t nettype)
     {
         NICE(19);
@@ -335,7 +342,7 @@ extern "C"
         return strdup(get_current_wallet()->errorString().c_str());
     }
 
-
+    DLL_EXPORT
     bool is_wallet_exist(char *path)
     {
         return Monero::WalletManagerFactory::getWalletManager()->walletExists(std::string(path));
@@ -347,6 +354,7 @@ extern "C"
         change_current_wallet(nullptr);
     }
 
+    DLL_EXPORT
     char *get_filename()
     {
         return strdup(get_current_wallet()->filename().c_str());
@@ -372,37 +380,43 @@ extern "C"
         return strdup(get_current_wallet()->publicSpendKey().c_str());
     }
 
+    DLL_EXPORT
     char *get_address(uint32_t account_index, uint32_t address_index)
     {
         return strdup(get_current_wallet()->address(account_index, address_index).c_str());
     }
 
-
+    DLL_EXPORT
     const char *seed()
     {
         return strdup(get_current_wallet()->seed().c_str());
     }
 
+    DLL_EXPORT
     uint64_t get_full_balance(uint32_t account_index)
     {
         return get_current_wallet()->balance(account_index);
     }
 
+    DLL_EXPORT
     uint64_t get_unlocked_balance(uint32_t account_index)
     {
         return get_current_wallet()->unlockedBalance(account_index);
     }
 
+    DLL_EXPORT
     uint64_t get_current_height()
     {
         return get_current_wallet()->blockChainHeight();
     }
 
+    DLL_EXPORT
     uint64_t get_node_height()
     {
         return get_current_wallet()->daemonBlockChainHeight();
     }
 
+    DLL_EXPORT
     bool connect_to_node(char *error)
     {
         NICE(19);
@@ -416,6 +430,7 @@ extern "C"
         return is_connected;
     }
 
+    DLL_EXPORT
     bool setup_node(char *address, char *login, char *password, bool use_ssl, bool is_light_wallet, char *error)
     {
         NICE(19);
@@ -446,6 +461,7 @@ extern "C"
         return inited;
     }
 
+    DLL_EXPORT
     bool is_connected()
     {
         try {
@@ -455,22 +471,26 @@ extern "C"
         }
     }
 
+    DLL_EXPORT
     void start_refresh()
     {
         get_current_wallet()->refreshAsync();
         get_current_wallet()->startRefresh();
     }
 
+    DLL_EXPORT
     void set_refresh_from_block_height(uint64_t height)
     {
         get_current_wallet()->setRefreshFromBlockHeight(height);
     }
 
+    DLL_EXPORT
     void set_recovering_from_seed(bool is_recovery)
     {
         get_current_wallet()->setRecoveringFromSeed(is_recovery);
     }
 
+    DLL_EXPORT
     void store(char *path)
     {
         store_lock.lock();
@@ -798,16 +818,19 @@ extern "C"
         return strdup(get_current_wallet()->getSubaddressLabel(accountIndex, addressIndex).c_str());
     }
 
+    DLL_EXPORT
     void set_trusted_daemon(bool arg)
     {
         m_wallet->setTrustedDaemon(arg);
     }
 
+    DLL_EXPORT
     bool trusted_daemon()
     {
         return m_wallet->trustedDaemon();
     }
 
+    DLL_EXPORT
     bool validate_address(char *address)
     {
         return get_current_wallet()->addressValid(std::string(address), 0); // TODO fix like by making the command below work or by otherwise detecting nettype

@@ -4,7 +4,7 @@
 #include "CwWalletListener.h"
 
 // Define a macro for exporting functions on Windows.
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64) || defined(__declspec) || defined(BUILDING_FOR_WINDOWS)
 #define DLL_EXPORT __declspec(dllexport)
 #else
 #define DLL_EXPORT

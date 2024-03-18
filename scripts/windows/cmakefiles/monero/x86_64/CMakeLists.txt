@@ -1,6 +1,18 @@
 cmake_minimum_required(VERSION 3.4.1)
 set(CMAKE_CXX_STANDARD 14)
 
+if(${HOST_ABI} STREQUAL "x86_64-w64-mingw32")
+    set(CMAKE_SYSTEM_NAME Windows)
+    set(CMAKE_LINKER "x86_64-w64-mingw32-ld")
+    set(TARGET "x86_64-w64-mingw32")
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+elseif(${HOST_ABI} STREQUAL "i686-w64-mingw32")
+    set(CMAKE_SYSTEM_NAME Windows)
+    set(CMAKE_LINKER "i686-w64-mingw32-ld")
+    set(TARGET "i686-w64-mingw32")
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
+
 add_library( cw_monero
              SHARED
 #             ../../../cw_monero/android/jni/monero_jni.cpp

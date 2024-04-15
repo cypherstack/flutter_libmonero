@@ -13,6 +13,7 @@ echo "============================ Boost ============================"
 echo "Cloning Apple-Boost-BuildScript from - $BOOST_URL"
 git clone -b build $BOOST_URL $BOOST_DIR_PATH
 cd $BOOST_DIR_PATH
+sed -i .bak 's/CXX_FLAGS=""/CXX_FLAGS="-D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION -Wno-error=enum-constexpr-conversion"/g' boost.sh
 ./boost.sh -ios \
 	--min-ios-version ${MIN_IOS_VERSION} \
 	--boost-libs "${BOOST_LIBS}" \

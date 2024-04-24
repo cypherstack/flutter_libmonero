@@ -1,242 +1,279 @@
+
 import 'dart:ffi';
+import 'dart:isolate';
 
-import 'package:cw_monero/api/convert_utf8_to_string.dart';
+import 'package:cw_monero/api/account_list.dart';
 import 'package:cw_monero/api/exceptions/creation_transaction_exception.dart';
-import 'package:cw_monero/api/monero_api.dart';
 import 'package:cw_monero/api/monero_output.dart';
-import 'package:cw_monero/api/signatures.dart';
 import 'package:cw_monero/api/structs/pending_transaction.dart';
-import 'package:cw_monero/api/structs/transaction_info_row.dart';
-import 'package:cw_monero/api/structs/ut8_box.dart';
-import 'package:cw_monero/api/types.dart';
 import 'package:ffi/ffi.dart';
-import 'package:ffi/ffi.dart' as pkgffi;
-import 'package:flutter/foundation.dart';
+import 'package:monero/monero.dart' as monero;
+import 'package:monero/src/generated_bindings_monero.g.dart' as monero_gen;
 
-final transactionsRefreshNative = moneroApi
-    .lookup<NativeFunction<transactions_refresh>>('transactions_refresh')
-    .asFunction<TransactionsRefresh>();
 
-final transactionsCountNative = moneroApi
-    .lookup<NativeFunction<transactions_count>>('transactions_count')
-    .asFunction<TransactionsCount>();
-
-final transactionsGetAllNative = moneroApi
-    .lookup<NativeFunction<transactions_get_all>>('transactions_get_all')
-    .asFunction<TransactionsGetAll>();
-
-final transactionCreateNative = moneroApi
-    .lookup<NativeFunction<transaction_create>>('transaction_create')
-    .asFunction<TransactionCreate>();
-
-final transactionCreateMultDestNative = moneroApi
-    .lookup<NativeFunction<transaction_create_mult_dest>>(
-        'transaction_create_mult_dest')
-    .asFunction<TransactionCreateMultDest>();
-
-final transactionCommitNative = moneroApi
-    .lookup<NativeFunction<transaction_commit>>('transaction_commit')
-    .asFunction<TransactionCommit>();
-
-final getTxKeyNative = moneroApi
-    .lookup<NativeFunction<get_tx_key>>('get_tx_key')
-    .asFunction<GetTxKey>();
-
-String? getTxKey(String txId) {
-  final txIdPointer = txId.toNativeUtf8();
-  final keyPointer = getTxKeyNative(txIdPointer);
-
-  pkgffi.calloc.free(txIdPointer);
-
-  if (keyPointer != null) {
-    return convertUTF8ToString(pointer: keyPointer);
-  }
-
-  return null;
+String getTxKey(String txId) {
+  return monero.Wallet_getTxKey(wptr!, txid: txId);
 }
 
-void refreshTransactions() => transactionsRefreshNative();
+monero.TransactionHistory? txhistory;
 
-int countOfTransactions() => transactionsCountNative();
-
-List<TransactionInfoRow> getAllTransations() {
-  final size = transactionsCountNative();
-  final transactionsPointer = transactionsGetAllNative();
-  final transactionsAddresses = transactionsPointer.asTypedList(size);
-
-  return transactionsAddresses
-      .map((addr) => Pointer<TransactionInfoRow>.fromAddress(addr).ref)
-      .toList();
+void refreshTransactions() {
+  txhistory = monero.Wallet_history(wptr!);
+  monero.TransactionHistory_refresh(txhistory!);
 }
 
-PendingTransactionDescription createTransactionSync(
+int countOfTransactions() => monero.TransactionHistory_count(txhistory!);
+
+List<Transaction> getAllTransactions() {
+  final size = countOfTransactions();
+
+  return List.generate(size, (index) => Transaction(txInfo: monero.TransactionHistory_transaction(txhistory!, index: index)));
+}
+
+// TODO(mrcyjanek): ...
+Transaction getTransaction(String txId) {
+  return Transaction(txInfo: monero.TransactionHistory_transactionById(txhistory!, txid: txId));
+}
+
+Future<PendingTransactionDescription> createTransactionSync(
     {required String address,
     required String paymentId,
+    required int priorityRaw,
     String? amount,
-    int? priorityRaw,
-    int? accountIndex = 0}) {
-  final addressPointer = address.toNativeUtf8();
-  final paymentIdPointer = paymentId.toNativeUtf8();
-  final amountPointer = amount != null ? amount.toNativeUtf8() : nullptr;
+    int accountIndex = 0,
+    List<String> preferredInputs = const []}) async {
 
-  final errorMessagePointer =
-      pkgffi.calloc.allocate<Utf8Box>(sizeOf<Utf8Box>());
-  final pendingTransactionRawPointer = pkgffi.calloc
-      .allocate<PendingTransactionRaw>(sizeOf<PendingTransactionRaw>());
-  final created = transactionCreateNative(
-          addressPointer,
-          paymentIdPointer,
-          amountPointer,
-          priorityRaw,
-          accountIndex,
-          errorMessagePointer,
-          pendingTransactionRawPointer) !=
-      0;
+  final amt = amount == null ? 0 : monero.Wallet_amountFromString(amount);
+  
+  final address_ = address.toNativeUtf8(); 
+  final paymentId_ = paymentId.toNativeUtf8(); 
+  final preferredInputs_ = preferredInputs.join(monero.defaultSeparatorStr).toNativeUtf8();
 
-  pkgffi.calloc.free(addressPointer);
-  pkgffi.calloc.free(paymentIdPointer);
+  final waddr = wptr!.address;
+  final addraddr = address_.address;
+  final paymentIdAddr = paymentId_.address;
+  final preferredInputsAddr = preferredInputs_.address;
+  final spaddr = monero.defaultSeparator.address;
+  final pendingTx = Pointer<Void>.fromAddress(await Isolate.run(() {
+    final tx = monero_gen.MoneroC(DynamicLibrary.open(monero.libPath)).MONERO_Wallet_createTransaction(
+      Pointer.fromAddress(waddr),
+      Pointer.fromAddress(addraddr).cast(),
+      Pointer.fromAddress(paymentIdAddr).cast(),
+      amt,
+      1,
+      priorityRaw,
+      accountIndex,
+      Pointer.fromAddress(preferredInputsAddr).cast(),
+      Pointer.fromAddress(spaddr),
+    );
+    return tx.address;
+  }));
+  calloc.free(address_);
+  calloc.free(paymentId_);
+  calloc.free(preferredInputs_);
+  final String? error = (() {
+    final status = monero.PendingTransaction_status(pendingTx);
+    if (status == 0) {
+      return null;
+    }
+    return monero.PendingTransaction_errorString(pendingTx);
+  })();
 
-  if (amountPointer != nullptr) {
-    pkgffi.calloc.free(amountPointer);
-  }
-
-  if (!created) {
-    final message = errorMessagePointer.ref.getValue();
-    pkgffi.calloc.free(errorMessagePointer);
+  if (error != null) {
+    final message = error;
     throw CreationTransactionException(message: message);
   }
 
+  final rAmt = monero.PendingTransaction_amount(pendingTx);
+  final rFee = monero.PendingTransaction_fee(pendingTx);
+  final rHash = monero.PendingTransaction_txid(pendingTx, '');
+  final rTxKey = rHash;
+
   return PendingTransactionDescription(
-      amount: pendingTransactionRawPointer.ref.amount,
-      fee: pendingTransactionRawPointer.ref.fee,
-      hash: pendingTransactionRawPointer.ref.getHash(),
-      pointerAddress: pendingTransactionRawPointer.address);
+      amount: rAmt,
+      fee: rFee,
+      hash: rHash,
+      hex: '',
+      txKey: rTxKey,
+      pointerAddress: pendingTx.address,
+    );
 }
 
 PendingTransactionDescription createTransactionMultDestSync(
     {required List<MoneroOutput> outputs,
     required String paymentId,
-    int? priorityRaw,
-    int? accountIndex = 0}) {
-  final int size = outputs.length;
-  final List<Pointer<Utf8>> addressesPointers =
-      outputs.map((output) => output.address!.toNativeUtf8()).toList();
-  final Pointer<Pointer<Utf8>> addressesPointerPointer =
-      pkgffi.calloc.allocate(size * sizeOf<Pointer<Utf8>>());
-  final List<Pointer<Utf8>> amountsPointers =
-      outputs.map((output) => output.amount.toNativeUtf8()).toList();
-  final Pointer<Pointer<Utf8>> amountsPointerPointer =
-      pkgffi.calloc.allocate(size * sizeOf<Pointer<Utf8>>());
-
-  for (int i = 0; i < size; i++) {
-    addressesPointerPointer[i] = addressesPointers[i];
-    amountsPointerPointer[i] = amountsPointers[i];
+    required int priorityRaw,
+    int accountIndex = 0,
+    List<String> preferredInputs = const []}) {
+  
+  final txptr = monero.Wallet_createTransactionMultDest(
+    wptr!,
+    dstAddr: outputs.map((e) => e.address!).toList(),
+    isSweepAll: false,
+    amounts: outputs.map((e) => monero.Wallet_amountFromString(e.amount)).toList(),
+    mixinCount: 0,
+    pendingTransactionPriority: priorityRaw,
+    subaddr_account: accountIndex,
+  );
+  if (monero.PendingTransaction_status(txptr) != 0) {
+    throw CreationTransactionException(message: monero.PendingTransaction_errorString(txptr));
   }
-
-  final paymentIdPointer = paymentId.toNativeUtf8();
-  final errorMessagePointer =
-      pkgffi.calloc.allocate<Utf8Box>(sizeOf<Utf8Box>());
-  final pendingTransactionRawPointer = pkgffi.calloc
-      .allocate<PendingTransactionRaw>(sizeOf<PendingTransactionRaw>());
-  final created = transactionCreateMultDestNative(
-          addressesPointerPointer,
-          paymentIdPointer,
-          amountsPointerPointer,
-          size,
-          priorityRaw,
-          accountIndex,
-          errorMessagePointer,
-          pendingTransactionRawPointer) !=
-      0;
-  pkgffi.calloc.free(addressesPointerPointer);
-  pkgffi.calloc.free(amountsPointerPointer);
-
-  addressesPointers.forEach((element) => pkgffi.calloc.free(element));
-  amountsPointers.forEach((element) => pkgffi.calloc.free(element));
-
-  pkgffi.calloc.free(paymentIdPointer);
-
-  if (!created) {
-    final message = errorMessagePointer.ref.getValue();
-    pkgffi.calloc.free(errorMessagePointer);
-    throw CreationTransactionException(message: message);
-  }
-
   return PendingTransactionDescription(
-      amount: pendingTransactionRawPointer.ref.amount,
-      fee: pendingTransactionRawPointer.ref.fee,
-      hash: pendingTransactionRawPointer.ref.getHash(),
-      pointerAddress: pendingTransactionRawPointer.address);
+    amount: monero.PendingTransaction_amount(txptr),
+    fee: monero.PendingTransaction_fee(txptr),
+    hash: monero.PendingTransaction_txid(txptr, ''),
+    hex: monero.PendingTransaction_txid(txptr, ''),
+    txKey: monero.PendingTransaction_txid(txptr, ''),
+    pointerAddress: txptr.address,
+  );
 }
 
 void commitTransactionFromPointerAddress({required int address}) =>
-    commitTransaction(
-        transactionPointer:
-            Pointer<PendingTransactionRaw>.fromAddress(address));
+    commitTransaction(transactionPointer: monero.PendingTransaction.fromAddress(address));
 
-void commitTransaction({Pointer<PendingTransactionRaw>? transactionPointer}) {
-  final errorMessagePointer =
-      pkgffi.calloc.allocate<Utf8Box>(sizeOf<Utf8Box>());
-  final isCommited =
-      transactionCommitNative(transactionPointer!, errorMessagePointer) != 0;
+void commitTransaction({required monero.PendingTransaction transactionPointer}) {
+  
+  final txCommit = monero.PendingTransaction_commit(transactionPointer, filename: '', overwrite: false);
 
-  if (!isCommited) {
-    final message = errorMessagePointer.ref.getValue();
-    pkgffi.calloc.free(errorMessagePointer);
-    throw CreationTransactionException(message: message);
+  final String? error = (() {
+    final status = monero.PendingTransaction_status(transactionPointer.cast());
+    if (status == 0) {
+      return null;
+    }
+    return monero.Wallet_errorString(wptr!);
+  })();
+  
+  if (error != null) {
+    throw CreationTransactionException(message: error);
   }
 }
 
-PendingTransactionDescription _createTransactionSync(Map args) {
+Future<PendingTransactionDescription> _createTransactionSync(Map args) async {
   final address = args['address'] as String;
   final paymentId = args['paymentId'] as String;
   final amount = args['amount'] as String?;
-  final priorityRaw = args['priorityRaw'] as int?;
-  final accountIndex = args['accountIndex'] as int?;
+  final priorityRaw = args['priorityRaw'] as int;
+  final accountIndex = args['accountIndex'] as int;
+  final preferredInputs = args['preferredInputs'] as List<String>;
 
   return createTransactionSync(
       address: address,
       paymentId: paymentId,
       amount: amount,
       priorityRaw: priorityRaw,
-      accountIndex: accountIndex);
+      accountIndex: accountIndex,
+      preferredInputs: preferredInputs);
 }
 
 PendingTransactionDescription _createTransactionMultDestSync(Map args) {
   final outputs = args['outputs'] as List<MoneroOutput>;
   final paymentId = args['paymentId'] as String;
-  final priorityRaw = args['priorityRaw'] as int?;
-  final accountIndex = args['accountIndex'] as int?;
+  final priorityRaw = args['priorityRaw'] as int;
+  final accountIndex = args['accountIndex'] as int;
+  final preferredInputs = args['preferredInputs'] as List<String>;
 
   return createTransactionMultDestSync(
       outputs: outputs,
       paymentId: paymentId,
       priorityRaw: priorityRaw,
-      accountIndex: accountIndex);
+      accountIndex: accountIndex,
+      preferredInputs: preferredInputs);
 }
 
 Future<PendingTransactionDescription> createTransaction(
-        {String? address,
-        String paymentId = '',
+        {required String address,
+        required int priorityRaw,
         String? amount,
-        int? priorityRaw,
-        int? accountIndex = 0}) =>
-    compute(_createTransactionSync, {
+        String paymentId = '',
+        int accountIndex = 0,
+        List<String> preferredInputs = const []}) async =>
+    _createTransactionSync({
       'address': address,
       'paymentId': paymentId,
       'amount': amount,
       'priorityRaw': priorityRaw,
-      'accountIndex': accountIndex
+      'accountIndex': accountIndex,
+      'preferredInputs': preferredInputs
     });
 
 Future<PendingTransactionDescription> createTransactionMultDest(
-        {List<MoneroOutput>? outputs,
+        {required List<MoneroOutput> outputs,
+        required int priorityRaw,
         String paymentId = '',
-        int? priorityRaw,
-        int? accountIndex = 0}) =>
-    compute(_createTransactionMultDestSync, {
+        int accountIndex = 0,
+        List<String> preferredInputs = const []}) async =>
+    _createTransactionMultDestSync({
       'outputs': outputs,
       'paymentId': paymentId,
       'priorityRaw': priorityRaw,
-      'accountIndex': accountIndex
+      'accountIndex': accountIndex,
+      'preferredInputs': preferredInputs
     });
+
+
+class Transaction {
+  Transaction({
+    required this.txInfo,
+  })  : displayLabel = monero.TransactionInfo_label(txInfo),
+        hash = monero.TransactionInfo_hash(txInfo),
+        timeStamp = DateTime.fromMillisecondsSinceEpoch(
+          monero.TransactionInfo_timestamp(txInfo) * 1000,
+        ),
+        isSpend = monero.TransactionInfo_direction(txInfo) ==
+            monero.TransactionInfo_Direction.Out,
+        amount = monero.TransactionInfo_amount(txInfo),
+        paymentId = monero.TransactionInfo_paymentId(txInfo),
+        accountIndex = monero.TransactionInfo_subaddrAccount(txInfo),
+        blockheight = monero.TransactionInfo_blockHeight(txInfo),
+        confirmations = monero.TransactionInfo_confirmations(txInfo),
+        fee = monero.TransactionInfo_fee(txInfo),
+        description = monero.TransactionInfo_description(txInfo),
+        key = monero.Wallet_getTxKey(wptr!, txid: monero.TransactionInfo_hash(txInfo));
+  final String displayLabel;
+  String subaddressLabel = monero.Wallet_getSubaddressLabel(wptr!, accountIndex: 0, addressIndex: 0);
+  late final String address = monero.Wallet_address(
+    wptr!,
+    accountIndex: 0,
+    addressIndex: 0,
+  );
+  final String description;
+  final int fee;
+  final int confirmations;
+  late final bool isPending = confirmations < 10;
+  final int blockheight;
+  final int addressIndex = 0;
+  final int accountIndex;
+  final String paymentId;
+  final int amount;
+  final bool isSpend;
+  late DateTime timeStamp;
+  late final bool isConfirmed = !isPending;
+  final String hash;
+  final String key;
+
+  Map<String, dynamic> toJson() {
+    return {
+      "displayLabel": displayLabel,
+      "subaddressLabel": subaddressLabel,
+      "address": address,
+      "description": description,
+      "fee": fee,
+      "confirmations": confirmations,
+      "isPending": isPending,
+      "blockheight": blockheight,
+      "accountIndex": accountIndex,
+      "addressIndex": addressIndex,
+      "paymentId": paymentId,
+      "amount": amount,
+      "isSpend": isSpend,
+      "timeStamp": timeStamp.toIso8601String(),
+      "isConfirmed": isConfirmed,
+      "hash": hash,
+    };
+  }
+
+  // S finalubAddress? subAddress;
+  // List<Transfer> transfers = [];
+  // final int txIndex;
+  final monero.TransactionInfo txInfo;
+}

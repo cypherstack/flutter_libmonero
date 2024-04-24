@@ -1,6 +1,7 @@
-import 'package:mobx/mobx.dart';
 import 'package:cw_core/account.dart';
 import 'package:cw_monero/api/account_list.dart' as account_list;
+import 'package:mobx/mobx.dart';
+import 'package:monero/monero.dart' as monero;
 
 part 'monero_account_list.g.dart';
 
@@ -12,7 +13,6 @@ abstract class MoneroAccountListBase with Store {
         _isRefreshing = false,
         _isUpdating = false {
     refresh();
-    print(account_list.accountSizeNative());
   }
 
   @observable
@@ -42,19 +42,22 @@ abstract class MoneroAccountListBase with Store {
     }
   }
 
-  List<Account> getAll() => account_list
-      .getAllAccount()
-      .map((accountRow) => Account(
-        id: accountRow.getId(),
-        label: accountRow.getLabel()))
-      .toList();
+  List<Account> getAll() => account_list.getAllAccount().map((accountRow) {
+        // final balance = monero.SubaddressAccountRow_getUnlockedBalance(accountRow);
 
-  Future addAccount({String? label}) async {
+        return Account(
+          id: monero.SubaddressAccountRow_getRowId(accountRow),
+          label: monero.SubaddressAccountRow_getLabel(accountRow),
+          // balance: moneroAmountToString(amount: monero.Wallet_amountFromString(balance)),
+        );
+      }).toList();
+
+  Future addAccount({required String label}) async {
     await account_list.addAccount(label: label);
     update();
   }
 
-  Future setLabelAccount({int? accountIndex, String? label}) async {
+  Future setLabelAccount({required int accountIndex, required String label}) async {
     await account_list.setLabelForAccount(
         accountIndex: accountIndex, label: label);
     update();

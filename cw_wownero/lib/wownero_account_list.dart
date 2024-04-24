@@ -1,6 +1,7 @@
-import 'package:mobx/mobx.dart';
 import 'package:cw_core/account.dart';
 import 'package:cw_wownero/api/account_list.dart' as account_list;
+import 'package:mobx/mobx.dart';
+import 'package:monero/wownero.dart' as wownero;
 
 part 'wownero_account_list.g.dart';
 
@@ -12,7 +13,6 @@ abstract class WowneroAccountListBase with Store {
         _isRefreshing = false,
         _isUpdating = false {
     refresh();
-    print(account_list.accountSizeNative());
   }
 
   @observable
@@ -42,19 +42,22 @@ abstract class WowneroAccountListBase with Store {
     }
   }
 
-  List<Account> getAll() => account_list
-      .getAllAccount()
-      .map((accountRow) => Account(
-        id: accountRow.getId(),
-        label: accountRow.getLabel()))
-      .toList();
+  List<Account> getAll() => account_list.getAllAccount().map((accountRow) {
+    // final balance = wownero.SubaddressAccountRow_getUnlockedBalance(accountRow);
 
-  Future addAccount({String? label}) async {
+    return Account(
+      id: wownero.SubaddressAccountRow_getRowId(accountRow),
+      label: wownero.SubaddressAccountRow_getLabel(accountRow),
+      // balance: wowneroAmountToString(amount: wownero.Wallet_amountFromString(balance)),
+    );
+  }).toList();
+
+  Future addAccount({required String label}) async {
     await account_list.addAccount(label: label);
     update();
   }
 
-  Future setLabelAccount({int? accountIndex, String? label}) async {
+  Future setLabelAccount({required int accountIndex, required String label}) async {
     await account_list.setLabelForAccount(
         accountIndex: accountIndex, label: label);
     update();

@@ -1,96 +1,45 @@
+
 import 'dart:ffi';
 
-import 'package:cw_wownero/api/convert_utf8_to_string.dart';
+import 'package:cw_wownero/api/account_list.dart';
 import 'package:cw_wownero/api/exceptions/wallet_creation_exception.dart';
 import 'package:cw_wownero/api/exceptions/wallet_opening_exception.dart';
 import 'package:cw_wownero/api/exceptions/wallet_restore_from_keys_exception.dart';
 import 'package:cw_wownero/api/exceptions/wallet_restore_from_seed_exception.dart';
-import 'package:cw_wownero/api/signatures.dart';
-import 'package:cw_wownero/api/types.dart';
-import 'package:cw_wownero/api/wownero_api.dart';
-import 'package:ffi/ffi.dart';
-import 'package:ffi/ffi.dart' as pkgffi;
-import 'package:flutter/foundation.dart';
+import 'package:cw_wownero/api/wallet.dart';
+import 'package:monero/wownero.dart' as wownero;
 
-final create14WordWalletNative = wowneroApi
-    .lookup<NativeFunction<create_14_word_wallet>>('create_14_word_wallet')
-    .asFunction<Create14WordWallet>();
-
-final create25WordWalletNative = wowneroApi
-    .lookup<NativeFunction<create_25_word_wallet>>('create_25_word_wallet')
-    .asFunction<Create25WordWallet>();
-
-final restoreWalletFrom14WordSeedNative = wowneroApi
-    .lookup<NativeFunction<restore_wallet_from_14_word_seed>>(
-        'restore_wallet_from_14_word_seed')
-    .asFunction<RestoreWalletFrom14WordSeed>();
-
-final restoreWalletFrom25WordSeedNative = wowneroApi
-    .lookup<NativeFunction<restore_wallet_from_25_word_seed>>(
-        'restore_wallet_from_25_word_seed')
-    .asFunction<RestoreWalletFrom25WordSeed>();
-
-final restoreWalletFromKeysNative = wowneroApi
-    .lookup<NativeFunction<restore_wallet_from_keys>>(
-        'restore_wallet_from_keys')
-    .asFunction<RestoreWalletFromKeys>();
-
-final isWalletExistNative = wowneroApi
-    .lookup<NativeFunction<is_wallet_exist>>('is_wallet_exist')
-    .asFunction<IsWalletExist>();
-
-final loadWalletNative = wowneroApi
-    .lookup<NativeFunction<load_wallet>>('load_wallet')
-    .asFunction<LoadWallet>();
-
-final errorStringNative = wowneroApi
-    .lookup<NativeFunction<error_string>>('error_string')
-    .asFunction<ErrorString>();
+wownero.WalletManager? _wmPtr;
+final wownero.WalletManager wmPtr = Pointer.fromAddress((() {
+  try {
+    wownero.printStarts = true;
+    _wmPtr ??= wownero.WalletManagerFactory_getWalletManager();
+    print("ptr: $_wmPtr");
+  } catch (e) {
+    print(e);
+  }
+  return _wmPtr!.address;
+})());
 
 void createWalletSync(
     {required String path,
-    required String password,
-    required String language,
-    int nettype = 0,
-    int seedWordsLength = 14}) {
-  final pathPointer = path.toNativeUtf8();
-  final passwordPointer = password.toNativeUtf8();
-  final languagePointer = language.toNativeUtf8();
-  final errorMessagePointer =
-      pkgffi.calloc.allocate<Utf8>(sizeOf<Pointer<Utf8>>());
+     required String password,
+     required String language,
+     int nettype = 0}) {
+  wptr = wownero.WalletManager_createWallet(wmPtr, path: path, password: password, language: language, networkType: 0);
 
-  bool
-      isWalletCreated; // TODO refactor to return to use of final isWalletCreated
-  if (seedWordsLength == 14) {
-    isWalletCreated = create14WordWalletNative(pathPointer, passwordPointer,
-            languagePointer, nettype, errorMessagePointer) !=
-        0;
-  } else /*if (seedWordsLength == 25)*/ {
-    isWalletCreated = create25WordWalletNative(pathPointer, passwordPointer,
-            languagePointer, nettype, errorMessagePointer) !=
-        0;
-    // TODO handle other cases / validation
+  final status = wownero.Wallet_status(wptr!);
+  if (status != 0) {
+    throw WalletCreationException(message: wownero.Wallet_errorString(wptr!));
   }
+  wownero.Wallet_store(wptr!, path: path);
 
-  pkgffi.calloc.free(pathPointer);
-  pkgffi.calloc.free(passwordPointer);
-  pkgffi.calloc.free(languagePointer);
-
-  if (!isWalletCreated) {
-    throw WalletCreationException(
-        message: convertUTF8ToString(pointer: errorMessagePointer));
-  }
-
-  // setupNodeSync(address: "node.moneroworld.com:18089");
+  // is the line below needed?
+  // setupNodeSync(address: "node.wowneroworld.com:18089");
 }
 
 bool isWalletExistSync({required String path}) {
-  final pathPointer = path.toNativeUtf8();
-  final isExist = isWalletExistNative(pathPointer) != 0;
-
-  pkgffi.calloc.free(pathPointer);
-
-  return isExist;
+  return wownero.WalletManager_walletExists(wmPtr, path);
 }
 
 void restoreWalletFromSeedSync(
@@ -98,33 +47,23 @@ void restoreWalletFromSeedSync(
     required String password,
     required String seed,
     int nettype = 0,
-    int? restoreHeight = 0}) {
-  final pathPointer = path.toNativeUtf8();
-  final passwordPointer = password.toNativeUtf8();
-  final seedPointer = seed.toNativeUtf8();
-  final errorMessagePointer =
-      pkgffi.calloc.allocate<Utf8>(sizeOf<Pointer<Utf8>>());
+    int restoreHeight = 0}) {
 
-  int seedWordsLength = seed.split(' ').length;
-  bool isWalletRestored; // TODO refactor to return to use of final isRestored
-  if (seedWordsLength == 14) {
-    isWalletRestored = restoreWalletFrom14WordSeedNative(pathPointer,
-            passwordPointer, seedPointer, nettype, errorMessagePointer) !=
-        0;
-  } else /*if(seedWordsLength == 25)*/ {
-    isWalletRestored = restoreWalletFrom25WordSeedNative(pathPointer,
-            passwordPointer, seedPointer, nettype, errorMessagePointer) !=
-        0;
-    // TODO handle other cases / validation
-  }
+  wptr = wownero.WalletManager_recoveryWallet(
+    wmPtr,
+    path: path,
+    password: password,
+    mnemonic: seed,
+    restoreHeight: restoreHeight,
+    seedOffset: '',
+    networkType: 0,
+  );
+  
+  final status = wownero.Wallet_status(wptr!);
 
-  pkgffi.calloc.free(pathPointer);
-  pkgffi.calloc.free(passwordPointer);
-  pkgffi.calloc.free(seedPointer);
-
-  if (!isWalletRestored) {
-    throw WalletRestoreFromSeedException(
-        message: convertUTF8ToString(pointer: errorMessagePointer));
+  if (status != 0) {
+    final error = wownero.Wallet_errorString(wptr!);
+    throw WalletRestoreFromSeedException(message: error);
   }
 }
 
@@ -136,51 +75,90 @@ void restoreWalletFromKeysSync(
     required String viewKey,
     required String spendKey,
     int nettype = 0,
-    int? restoreHeight = 0}) {
-  final pathPointer = path.toNativeUtf8();
-  final passwordPointer = password.toNativeUtf8();
-  final languagePointer = language.toNativeUtf8();
-  final addressPointer = address.toNativeUtf8();
-  final viewKeyPointer = viewKey.toNativeUtf8();
-  final spendKeyPointer = spendKey.toNativeUtf8();
-  final errorMessagePointer =
-      pkgffi.calloc.allocate<Utf8>(sizeOf<Pointer<Utf8>>());
-  final isWalletRestored = restoreWalletFromKeysNative(
-          pathPointer,
-          passwordPointer,
-          languagePointer,
-          addressPointer,
-          viewKeyPointer,
-          spendKeyPointer,
-          nettype,
-          restoreHeight,
-          errorMessagePointer) !=
-      0;
+    int restoreHeight = 0}) {
 
-  pkgffi.calloc.free(pathPointer);
-  pkgffi.calloc.free(passwordPointer);
-  pkgffi.calloc.free(languagePointer);
-  pkgffi.calloc.free(addressPointer);
-  pkgffi.calloc.free(viewKeyPointer);
-  pkgffi.calloc.free(spendKeyPointer);
-
-  if (!isWalletRestored) {
-    throw WalletRestoreFromKeysException(
-        message: convertUTF8ToString(pointer: errorMessagePointer));
+  wptr = wownero.WalletManager_createWalletFromKeys(
+    wmPtr,
+    path: path,
+    password: password,
+    restoreHeight: restoreHeight,
+    addressString: address,
+    viewKeyString: viewKey,
+    spendKeyString: spendKey,
+    nettype: 0,
+  );
+  
+  final status = wownero.Wallet_status(wptr!);
+  if (status != 0) {
+    throw WalletRestoreFromKeysException(message: wownero.Wallet_errorString(wptr!));
   }
 }
 
-void loadWallet(
-    {required String path, required String password, int nettype = 0}) {
-  final pathPointer = path.toNativeUtf8();
-  final passwordPointer = password.toNativeUtf8();
-  final loaded = loadWalletNative(pathPointer, passwordPointer, nettype) != 0;
-  pkgffi.calloc.free(pathPointer);
-  pkgffi.calloc.free(passwordPointer);
+void restoreWalletFromSpendKeySync(
+    {required String path,
+      required String password,
+      required String seed,
+      required String language,
+      required String spendKey,
+      int nettype = 0,
+      int restoreHeight = 0}) {
 
-  if (!loaded) {
-    throw WalletOpeningException(
-        message: convertUTF8ToString(pointer: errorStringNative()));
+  // wptr = wownero.WalletManager_createWalletFromKeys(
+  //   wmPtr,
+  //   path: path,
+  //   password: password,
+  //   restoreHeight: restoreHeight,
+  //   addressString: '',
+  //   spendKeyString: spendKey,
+  //   viewKeyString: '',
+  //   nettype: 0,
+  // );
+
+  wptr = wownero.WalletManager_createDeterministicWalletFromSpendKey(
+    wmPtr,
+    path: path,
+    password: password,
+    language: language,
+    spendKeyString: spendKey,
+    newWallet: true, // TODO(mrcyjanek): safe to remove
+    restoreHeight: restoreHeight,
+  );
+
+  final status = wownero.Wallet_status(wptr!);
+
+  if (status != 0) {
+    final err = wownero.Wallet_errorString(wptr!);
+    print("err: $err");
+    throw WalletRestoreFromKeysException(message: err);
+  }
+
+  wownero.Wallet_setCacheAttribute(wptr!, key: "cakewallet.seed", value: seed);
+
+  storeSync();
+}
+
+String _lastOpenedWallet = "";
+
+void loadWallet({
+  required String path,
+  required String password,
+  int nettype = 0}) {
+  try {
+    if (wptr == null || path != _lastOpenedWallet) {
+      if (wptr != null) {
+        wownero.Wallet_store(wptr!);
+      }
+      wptr = wownero.WalletManager_openWallet(wmPtr, path: path, password: password);
+      _lastOpenedWallet = path;
+    }
+  } catch (e) {
+    print(e);
+  }
+  final status = wownero.Wallet_status(wptr!);
+  if (status != 0) {
+    final err = wownero.Wallet_errorString(wptr!);
+    print(err);
+    throw WalletOpeningException(message: err);
   }
 }
 
@@ -188,20 +166,15 @@ void _createWallet(Map<String, dynamic> args) {
   final path = args['path'] as String;
   final password = args['password'] as String;
   final language = args['language'] as String;
-  final seedWordsLength = args['seedWordsLength'] as int?;
 
-  createWalletSync(
-      path: path,
-      password: password,
-      language: language,
-      seedWordsLength: seedWordsLength ?? 14);
+  createWalletSync(path: path, password: password, language: language);
 }
 
 void _restoreFromSeed(Map<String, dynamic> args) {
   final path = args['path'] as String;
   final password = args['password'] as String;
   final seed = args['seed'] as String;
-  final restoreHeight = args['restoreHeight'] as int?;
+  final restoreHeight = args['restoreHeight'] as int;
 
   restoreWalletFromSeedSync(
       path: path, password: password, seed: seed, restoreHeight: restoreHeight);
@@ -211,7 +184,7 @@ void _restoreFromKeys(Map<String, dynamic> args) {
   final path = args['path'] as String;
   final password = args['password'] as String;
   final language = args['language'] as String;
-  final restoreHeight = args['restoreHeight'] as int?;
+  final restoreHeight = args['restoreHeight'] as int;
   final address = args['address'] as String;
   final viewKey = args['viewKey'] as String;
   final spendKey = args['spendKey'] as String;
@@ -226,41 +199,53 @@ void _restoreFromKeys(Map<String, dynamic> args) {
       spendKey: spendKey);
 }
 
+void _restoreFromSpendKey(Map<String, dynamic> args) {
+  final path = args['path'] as String;
+  final password = args['password'] as String;
+  final seed = args['seed'] as String;
+  final language = args['language'] as String;
+  final spendKey = args['spendKey'] as String;
+  final restoreHeight = args['restoreHeight'] as int;
+
+  restoreWalletFromSpendKeySync(
+      path: path,
+      password: password,
+      seed: seed,
+      language: language,
+      restoreHeight: restoreHeight,
+      spendKey: spendKey);
+}
+
 Future<void> _openWallet(Map<String, String> args) async =>
-    loadWallet(path: args['path']!, password: args['password']!);
+    loadWallet(path: args['path'] as String, password: args['password'] as String);
 
-bool _isWalletExist(String? path) => isWalletExistSync(path: path!);
+Future<bool> _isWalletExist(String path) async => isWalletExistSync(path: path);
 
-void openWallet(
-        {required String path,
-        required String password,
-        int nettype = 0}) async =>
+void openWallet({required String path, required String password, int nettype = 0}) async =>
     loadWallet(path: path, password: password, nettype: nettype);
 
 Future<void> openWalletAsync(Map<String, String> args) async =>
-    compute(_openWallet, args);
+    _openWallet(args);
 
 Future<void> createWallet(
-        {String? path,
-        String? password,
-        String? language,
-        int nettype = 0,
-        int seedWordsLength = 14}) async =>
-    compute(_createWallet, {
+        {required String path,
+        required String password,
+        required String language,
+        int nettype = 0}) async =>
+    _createWallet({
       'path': path,
       'password': password,
       'language': language,
-      'nettype': nettype,
-      'seedWordsLength': seedWordsLength
+      'nettype': nettype
     });
 
-Future restoreFromSeed(
-        {String? path,
-        String? password,
-        String? seed,
+Future<void> restoreFromSeed(
+        {required String path,
+        required String password,
+        required String seed,
         int nettype = 0,
-        int? restoreHeight = 0}) async =>
-    compute<Map<String, Object?>, void>(_restoreFromSeed, {
+        int restoreHeight = 0}) async =>
+    _restoreFromSeed({
       'path': path,
       'password': password,
       'seed': seed,
@@ -268,16 +253,16 @@ Future restoreFromSeed(
       'restoreHeight': restoreHeight
     });
 
-Future restoreFromKeys(
-        {String? path,
-        String? password,
-        String? language,
-        String? address,
-        String? viewKey,
-        String? spendKey,
+Future<void> restoreFromKeys(
+        {required String path,
+        required String password,
+        required String language,
+        required String address,
+        required String viewKey,
+        required String spendKey,
         int nettype = 0,
-        int? restoreHeight = 0}) async =>
-    compute<Map<String, Object?>, void>(_restoreFromKeys, {
+        int restoreHeight = 0}) async =>
+    _restoreFromKeys({
       'path': path,
       'password': password,
       'language': language,
@@ -288,4 +273,22 @@ Future restoreFromKeys(
       'restoreHeight': restoreHeight
     });
 
-Future<bool> isWalletExist({String? path}) => compute(_isWalletExist, path);
+Future<void> restoreFromSpendKey(
+    {required String path,
+      required String password,
+      required String seed,
+      required String language,
+      required String spendKey,
+      int nettype = 0,
+      int restoreHeight = 0}) async =>
+    _restoreFromSpendKey({
+      'path': path,
+      'password': password,
+      'seed': seed,
+      'language': language,
+      'spendKey': spendKey,
+      'nettype': nettype,
+      'restoreHeight': restoreHeight
+    });
+
+Future<bool> isWalletExist({required String path}) => _isWalletExist(path);

@@ -10,6 +10,7 @@ import 'package:cw_core/monero_wallet_utils.dart';
 import 'package:cw_core/node.dart';
 import 'package:cw_core/pending_transaction.dart';
 import 'package:cw_core/sync_status.dart';
+import 'package:cw_core/transaction_direction.dart';
 import 'package:cw_core/transaction_priority.dart';
 import 'package:cw_core/wallet_base.dart';
 import 'package:cw_core/wallet_info.dart';
@@ -28,6 +29,7 @@ import 'package:cw_monero/monero_transaction_info.dart';
 import 'package:cw_monero/monero_wallet_addresses.dart';
 import 'package:cw_monero/pending_monero_transaction.dart';
 import 'package:mobx/mobx.dart';
+import 'package:monero/monero.dart' as monero;
 
 part 'monero_wallet.g.dart';
 
@@ -112,7 +114,7 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
 
       if (monero_wallet.getCurrentHeight() <= 1) {
         monero_wallet.setRefreshFromBlockHeight(
-            height: walletInfo.restoreHeight);
+            height: walletInfo.restoreHeight ?? 0);
       }
     }
 
@@ -139,7 +141,7 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
           useSSL: node.isSSL,
           isLightWallet: false); // FIXME: hardcoded value
 
-      monero_wallet.setTrustedDaemon(node.trusted);
+      await monero_wallet.setTrustedDaemon(node.trusted);
       syncStatus = ConnectedSyncStatus();
       syncStatusChanged?.call();
     } catch (e) {
@@ -210,7 +212,7 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
       pendingTransactionDescription =
           await transaction_history.createTransactionMultDest(
               outputs: moneroOutputs,
-              priorityRaw: _credentials.priority!.serialize(),
+              priorityRaw: _credentials.priority!.serialize()!,
               accountIndex: walletAddresses.account!.id);
     } else {
       final output = outputs.first;
@@ -231,9 +233,9 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
 
       pendingTransactionDescription =
           await transaction_history.createTransaction(
-              address: address,
+              address: address!,
               amount: amount,
-              priorityRaw: _credentials.priority!.serialize(),
+              priorityRaw: _credentials.priority!.serialize()!,
               accountIndex: walletAddresses.account!.id);
     }
 
@@ -267,7 +269,8 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
     print("save is called");
     await walletAddresses.updateAddressesInBox();
     await backupWalletFiles(name: name!, type: WalletType.monero);
-    return await monero_wallet.store(prioritySave: prioritySave);
+    await monero_wallet.store();
+    return true;
   }
 
   @override
@@ -288,7 +291,9 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
   Future<void> rescan({int? height}) async {
     walletInfo.restoreHeight = height;
     walletInfo.isRecovery = true;
-    monero_wallet.setRefreshFromBlockHeight(height: height);
+    if (height != null) {
+      monero_wallet.setRefreshFromBlockHeight(height: height);
+    }
     monero_wallet.rescanBlockchainAsync();
     await startSync();
     _askForUpdateBalance();
@@ -335,14 +340,25 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
   }
 
   bool validateAddress(String address) {
-    return monero_wallet.validateAddress(address);
+    return monero.Wallet_addressValid(address, 0);
   }
 
   List<MoneroTransactionInfo> _getAllTransactions(dynamic _) =>
-      monero_transaction_history
-          .getAllTransations()
-          .map((row) => MoneroTransactionInfo.fromRow(row))
-          .toList();
+      monero_transaction_history.getAllTransactions().map((row) {
+        return MoneroTransactionInfo(
+          row.hash,
+          row.blockheight,
+          row.isSpend ? TransactionDirection.outgoing : TransactionDirection.incoming,
+          row.timeStamp,
+          row.isPending,
+          row.amount,
+          row.accountIndex, 
+          row.addressIndex,
+          row.fee,
+        );
+      }).toList();
+          // .map((row) => MoneroTransactionInfo.fromRow(row))
+          // .toList();
 
   void _setListeners() {
     _listener?.stop();

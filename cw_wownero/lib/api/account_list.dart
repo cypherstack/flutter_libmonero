@@ -1,40 +1,28 @@
-import 'dart:ffi';
-
-import 'package:cw_wownero/api/signatures.dart';
-import 'package:cw_wownero/api/structs/account_row.dart';
-import 'package:cw_wownero/api/types.dart';
 import 'package:cw_wownero/api/wallet.dart';
-import 'package:cw_wownero/api/wownero_api.dart';
-import 'package:ffi/ffi.dart';
-import 'package:ffi/ffi.dart' as pkgffi;
-import 'package:flutter/foundation.dart';
+import 'package:monero/wownero.dart' as wownero;
 
-final accountSizeNative = wowneroApi
-    .lookup<NativeFunction<account_size>>('account_size')
-    .asFunction<SubaddressSize>();
+wownero.wallet? wptr;
 
-final accountRefreshNative = wowneroApi
-    .lookup<NativeFunction<account_refresh>>('account_refresh')
-    .asFunction<AccountRefresh>();
+int _wlptrForW = 0;
+wownero.WalletListener? _wlptr;
 
-final accountGetAllNative = wowneroApi
-    .lookup<NativeFunction<account_get_all>>('account_get_all')
-    .asFunction<AccountGetAll>();
+wownero.WalletListener getWlptr() {
+  if (wptr!.address == _wlptrForW) return _wlptr!;
+  _wlptrForW = wptr!.address;
+  _wlptr = wownero.WOWNERO_cw_getWalletListener(wptr!);
+  return _wlptr!;
+}
 
-final accountAddNewNative = wowneroApi
-    .lookup<NativeFunction<account_add_new>>('account_add_row')
-    .asFunction<AccountAddNew>();
 
-final accountSetLabelNative = wowneroApi
-    .lookup<NativeFunction<account_set_label>>('account_set_label_row')
-    .asFunction<AccountSetLabel>();
+wownero.SubaddressAccount? subaddressAccount;
 
 bool isUpdating = false;
 
 void refreshAccounts() {
   try {
     isUpdating = true;
-    accountRefreshNative();
+    subaddressAccount = wownero.Wallet_subaddressAccount(wptr!);
+    wownero.SubaddressAccount_refresh(subaddressAccount!);
     isUpdating = false;
   } catch (e) {
     isUpdating = false;
@@ -42,44 +30,44 @@ void refreshAccounts() {
   }
 }
 
-List<AccountRow> getAllAccount() {
-  final size = accountSizeNative();
-  final accountAddressesPointer = accountGetAllNative();
-  final accountAddresses = accountAddressesPointer.asTypedList(size);
-
-  return accountAddresses
-      .map((addr) => Pointer<AccountRow>.fromAddress(addr).ref)
-      .toList();
+List<wownero.SubaddressAccountRow> getAllAccount() {
+  // final size = wownero.Wallet_numSubaddressAccounts(wptr!);
+  refreshAccounts();
+  final int size = wownero.SubaddressAccount_getAll_size(subaddressAccount!);
+  print("size: $size");
+  if (size == 0) {
+    wownero.Wallet_addSubaddressAccount(wptr!);
+    return getAllAccount();
+  }
+  return List.generate(size, (index) {
+    return wownero.SubaddressAccount_getAll_byIndex(subaddressAccount!, index: index);
+  });
 }
 
 void addAccountSync({required String label}) {
-  final labelPointer = label.toNativeUtf8();
-  accountAddNewNative(labelPointer);
-  pkgffi.calloc.free(labelPointer);
+  wownero.Wallet_addSubaddressAccount(wptr!, label: label);
 }
 
-void setLabelForAccountSync({int? accountIndex, required String label}) {
-  final labelPointer = label.toNativeUtf8();
-  accountSetLabelNative(accountIndex, labelPointer);
-  pkgffi.calloc.free(labelPointer);
+void setLabelForAccountSync({required int accountIndex, required String label}) {
+  // TODO(mrcyjanek): this may be wrong function?
+  wownero.Wallet_setSubaddressLabel(wptr!, accountIndex: accountIndex, addressIndex: 0, label: label);
 }
 
-void _addAccount(String? label) => addAccountSync(label: label!);
+void _addAccount(String label) => addAccountSync(label: label);
 
 void _setLabelForAccount(Map<String, dynamic> args) {
   final label = args['label'] as String;
-  final accountIndex = args['accountIndex'] as int?;
+  final accountIndex = args['accountIndex'] as int;
 
   setLabelForAccountSync(label: label, accountIndex: accountIndex);
 }
 
-Future<void> addAccount({String? label}) async {
-  await compute(_addAccount, label);
+Future<void> addAccount({required String label}) async {
+  _addAccount(label);
   await store();
 }
 
-Future<void> setLabelForAccount({int? accountIndex, String? label}) async {
-  await compute(
-      _setLabelForAccount, {'accountIndex': accountIndex, 'label': label});
-  await store();
+Future<void> setLabelForAccount({required int accountIndex, required String label}) async {
+    _setLabelForAccount({'accountIndex': accountIndex, 'label': label});
+    await store();
 }

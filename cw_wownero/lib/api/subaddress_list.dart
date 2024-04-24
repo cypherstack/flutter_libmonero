@@ -1,40 +1,23 @@
-import 'dart:ffi';
 
-import 'package:cw_wownero/api/signatures.dart';
-import 'package:cw_wownero/api/structs/subaddress_row.dart';
-import 'package:cw_wownero/api/types.dart';
+import 'package:cw_wownero/api/account_list.dart';
 import 'package:cw_wownero/api/wallet.dart';
-import 'package:cw_wownero/api/wownero_api.dart';
-import 'package:ffi/ffi.dart';
-import 'package:ffi/ffi.dart' as pkgffi;
-import 'package:flutter/foundation.dart';
-
-final subaddressSizeNative = wowneroApi
-    .lookup<NativeFunction<subaddrress_size>>('subaddrress_size')
-    .asFunction<SubaddressSize>();
-
-final subaddressRefreshNative = wowneroApi
-    .lookup<NativeFunction<subaddrress_refresh>>('subaddress_refresh')
-    .asFunction<SubaddressRefresh>();
-
-final subaddrressGetAllNative = wowneroApi
-    .lookup<NativeFunction<subaddress_get_all>>('subaddrress_get_all')
-    .asFunction<SubaddressGetAll>();
-
-final subaddrressAddNewNative = wowneroApi
-    .lookup<NativeFunction<subaddress_add_new>>('subaddress_add_row')
-    .asFunction<SubaddressAddNew>();
-
-final subaddrressSetLabelNative = wowneroApi
-    .lookup<NativeFunction<subaddress_set_label>>('subaddress_set_label')
-    .asFunction<SubaddressSetLabel>();
+import 'package:monero/wownero.dart' as wownero;
 
 bool isUpdating = false;
 
-void refreshSubaddresses({required int? accountIndex}) {
+class SubaddressInfoMetadata {
+  SubaddressInfoMetadata({
+    required this.accountIndex,
+  });
+  int accountIndex;
+}
+
+SubaddressInfoMetadata? subaddress;
+
+void refreshSubaddresses({required int accountIndex}) {
   try {
     isUpdating = true;
-    subaddressRefreshNative(accountIndex);
+    subaddress = SubaddressInfoMetadata(accountIndex: accountIndex);
     isUpdating = false;
   } catch (e) {
     isUpdating = false;
@@ -42,55 +25,65 @@ void refreshSubaddresses({required int? accountIndex}) {
   }
 }
 
-List<SubaddressRow> getAllSubaddresses() {
-  final size = subaddressSizeNative();
-  final subaddressAddressesPointer = subaddrressGetAllNative();
-  final subaddressAddresses = subaddressAddressesPointer.asTypedList(size);
-
-  return subaddressAddresses
-      .map((addr) => Pointer<SubaddressRow>.fromAddress(addr).ref)
-      .toList();
+class Subaddress {
+  Subaddress({
+    required this.addressIndex,
+    required this.accountIndex,
+  });
+  String get address => wownero.Wallet_address(
+        wptr!,
+        accountIndex: accountIndex,
+        addressIndex: addressIndex,
+    );
+  final int addressIndex;
+  final int accountIndex;
+  String get label => wownero.Wallet_getSubaddressLabel(wptr!, accountIndex: accountIndex, addressIndex: addressIndex);
 }
 
-void addSubaddressSync({int? accountIndex, required String label}) {
-  final labelPointer = label.toNativeUtf8();
-  subaddrressAddNewNative(accountIndex, labelPointer);
-  pkgffi.calloc.free(labelPointer);
+List<Subaddress> getAllSubaddresses() {
+  final size = wownero.Wallet_numSubaddresses(wptr!, accountIndex: subaddress!.accountIndex);
+  return List.generate(size, (index) {
+    return Subaddress(
+      accountIndex: subaddress!.accountIndex,
+      addressIndex: index,
+    );
+  }).reversed.toList();
+}
+
+void addSubaddressSync({required int accountIndex, required String label}) {
+  wownero.Wallet_addSubaddress(wptr!, accountIndex: accountIndex, label: label);
+  refreshSubaddresses(accountIndex: accountIndex);
 }
 
 void setLabelForSubaddressSync(
-    {int? accountIndex, int? addressIndex, required String label}) {
-  final labelPointer = label.toNativeUtf8();
-
-  subaddrressSetLabelNative(accountIndex, addressIndex, labelPointer);
-  pkgffi.calloc.free(labelPointer);
+    {required int accountIndex, required int addressIndex, required String label}) {
+  wownero.Wallet_setSubaddressLabel(wptr!, accountIndex: accountIndex, addressIndex: addressIndex, label: label);
 }
 
 void _addSubaddress(Map<String, dynamic> args) {
   final label = args['label'] as String;
-  final accountIndex = args['accountIndex'] as int?;
+  final accountIndex = args['accountIndex'] as int;
 
   addSubaddressSync(accountIndex: accountIndex, label: label);
 }
 
 void _setLabelForSubaddress(Map<String, dynamic> args) {
   final label = args['label'] as String;
-  final accountIndex = args['accountIndex'] as int?;
-  final addressIndex = args['addressIndex'] as int?;
+  final accountIndex = args['accountIndex'] as int;
+  final addressIndex = args['addressIndex'] as int;
 
   setLabelForSubaddressSync(
       accountIndex: accountIndex, addressIndex: addressIndex, label: label);
 }
 
-Future addSubaddress({int? accountIndex, String? label}) async {
-  await compute<Map<String, Object?>, void>(
-      _addSubaddress, {'accountIndex': accountIndex, 'label': label});
+Future<void> addSubaddress({required int accountIndex, required String label}) async {
+  _addSubaddress({'accountIndex': accountIndex, 'label': label});
   await store();
 }
 
-Future setLabelForSubaddress(
-    {int? accountIndex, int? addressIndex, String? label}) async {
-  await compute<Map<String, Object?>, void>(_setLabelForSubaddress, {
+Future<void> setLabelForSubaddress(
+        {required int accountIndex, required int addressIndex, required String label}) async {
+  _setLabelForSubaddress({
     'accountIndex': accountIndex,
     'addressIndex': addressIndex,
     'label': label

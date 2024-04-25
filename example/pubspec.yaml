@@ -18,9 +18,6 @@ dependencies:
   cw_monero:
     path: ./../cw_monero
 
-  cw_shared_external:
-    path: ./../cw_shared_external
-
   flutter_libmonero:
     # When depending on this package from a real application you should use:
     #   flutter_libmonero: ^x.y.z

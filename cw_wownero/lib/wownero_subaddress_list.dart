@@ -1,8 +1,7 @@
-import 'package:cw_wownero/api/structs/subaddress_row.dart';
+import 'package:cw_core/subaddress.dart';
+import 'package:cw_wownero/api/subaddress_list.dart' as subaddress_list;
 import 'package:flutter/services.dart';
 import 'package:mobx/mobx.dart';
-import 'package:cw_wownero/api/subaddress_list.dart' as subaddress_list;
-import 'package:cw_core/subaddress.dart';
 
 part 'wownero_subaddress_list.g.dart';
 
@@ -22,7 +21,7 @@ abstract class WowneroSubaddressListBase with Store {
   late bool _isRefreshing;
   late bool _isUpdating;
 
-  void update({int? accountIndex}) {
+  void update({required int accountIndex}) {
     if (_isUpdating) {
       return;
     }
@@ -48,31 +47,39 @@ abstract class WowneroSubaddressListBase with Store {
       subaddresses = [primary] + rest.toList();
     }
 
-    return subaddresses
-        .map((subaddressRow) => Subaddress(
-          id: subaddressRow.getId(),
-          address: subaddressRow.getAddress(),
-          label: subaddressRow.getId() == 0 &&
-                subaddressRow.getLabel().toLowerCase() == 'Primary account'.toLowerCase()
-            ? 'Primary address'
-            : subaddressRow.getLabel()))
-        .toList();
+    return subaddresses.map((s) {
+      final address = s.address;
+      final label = s.label;
+      final id = s.addressIndex;
+      final hasDefaultAddressName =
+          label.toLowerCase() == 'Primary account'.toLowerCase() ||
+              label.toLowerCase() == 'Untitled account'.toLowerCase();
+      final isPrimaryAddress = id == 0 && hasDefaultAddressName;
+      return Subaddress(
+          id: id,
+          address: address,
+          label: isPrimaryAddress
+              ? 'Primary address'
+              : hasDefaultAddressName
+                  ? ''
+                  : label);
+    }).toList();
   }
 
-  Future addSubaddress({int? accountIndex, String? label}) async {
+  Future addSubaddress({required int accountIndex, required String label}) async {
     await subaddress_list.addSubaddress(
         accountIndex: accountIndex, label: label);
     update(accountIndex: accountIndex);
   }
 
   Future setLabelSubaddress(
-      {int? accountIndex, int? addressIndex, String? label}) async {
+      {required int accountIndex, required int addressIndex, required String label}) async {
     await subaddress_list.setLabelForSubaddress(
         accountIndex: accountIndex, addressIndex: addressIndex, label: label);
     update(accountIndex: accountIndex);
   }
 
-  void refresh({int? accountIndex}) {
+  void refresh({required int accountIndex}) {
     if (_isRefreshing) {
       return;
     }

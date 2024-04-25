@@ -2,7 +2,7 @@ part of 'wownero.dart';
 
 class CWWowneroAccountList extends WowneroAccountList {
   CWWowneroAccountList(this._wallet);
-  Object _wallet;
+  final Object _wallet;
 
   @override
   @computed
@@ -38,21 +38,21 @@ class CWWowneroAccountList extends WowneroAccountList {
   @override
   Future<void> addAccount(Object wallet, {String? label}) async {
     final wowneroWallet = wallet as WowneroWallet;
-    wowneroWallet.walletAddresses.accountList.addAccount(label: label);
+    await wowneroWallet.walletAddresses.accountList.addAccount(label: label??"");
   }
 
   @override
   Future<void> setLabelAccount(Object wallet,
       {int? accountIndex, String? label}) async {
     final wowneroWallet = wallet as WowneroWallet;
-    wowneroWallet.walletAddresses.accountList
-        .setLabelAccount(accountIndex: accountIndex, label: label);
+    await wowneroWallet.walletAddresses.accountList
+        .setLabelAccount(accountIndex: accountIndex??0, label: label??"");
   }
 }
 
 class CWWowneroSubaddressList extends WowneroSubaddressList {
   CWWowneroSubaddressList(this._wallet);
-  Object _wallet;
+  final Object _wallet;
 
   @override
   @computed
@@ -70,14 +70,14 @@ class CWWowneroSubaddressList extends WowneroSubaddressList {
   void update(Object wallet, {int? accountIndex}) {
     final wowneroWallet = wallet as WowneroWallet;
     wowneroWallet.walletAddresses.subaddressList
-        .update(accountIndex: accountIndex);
+        .update(accountIndex: accountIndex??0);
   }
 
   @override
   void refresh(Object wallet, {int? accountIndex}) {
     final wowneroWallet = wallet as WowneroWallet;
     wowneroWallet.walletAddresses.subaddressList
-        .refresh(accountIndex: accountIndex);
+        .refresh(accountIndex: accountIndex??0);
   }
 
   @override
@@ -94,23 +94,24 @@ class CWWowneroSubaddressList extends WowneroSubaddressList {
   Future<void> addSubaddress(Object wallet,
       {int? accountIndex, String? label}) async {
     final wowneroWallet = wallet as WowneroWallet;
-    wowneroWallet.walletAddresses.subaddressList
-        .addSubaddress(accountIndex: accountIndex, label: label);
+    await wowneroWallet.walletAddresses.subaddressList
+        .addSubaddress(accountIndex: accountIndex??0, label: label??"");
   }
 
   @override
   Future<void> setLabelSubaddress(Object wallet,
       {int? accountIndex, int? addressIndex, String? label}) async {
     final wowneroWallet = wallet as WowneroWallet;
-    wowneroWallet.walletAddresses.subaddressList.setLabelSubaddress(
-        accountIndex: accountIndex, addressIndex: addressIndex, label: label);
+    await wowneroWallet.walletAddresses.subaddressList.setLabelSubaddress(
+        accountIndex: accountIndex??0, addressIndex: addressIndex??0, label: label??"");
   }
 }
 
 class CWWowneroWalletDetails extends WowneroWalletDetails {
   CWWowneroWalletDetails(this._wallet);
-  Object _wallet;
+  final Object _wallet;
 
+  @override
   @computed
   Account get account {
     final wowneroWallet = _wallet as WowneroWallet;
@@ -118,6 +119,7 @@ class CWWowneroWalletDetails extends WowneroWalletDetails {
     return Account(id: acc.id, label: acc.label);
   }
 
+  @override
   @computed
   WowneroBalance get balance {
     final wowneroWallet = _wallet as WowneroWallet;
@@ -138,39 +140,48 @@ class CWWowneroWalletDetails extends WowneroWalletDetails {
 }
 
 class CWWownero extends Wownero {
+  @override
   WowneroAccountList getAccountList(Object wallet) {
     return CWWowneroAccountList(wallet);
   }
 
+  @override
   WowneroSubaddressList getSubaddressList(Object wallet) {
     return CWWowneroSubaddressList(wallet);
   }
 
+  @override
   TransactionHistoryBase? getTransactionHistory(Object wallet) {
     final wowneroWallet = wallet as WowneroWallet;
     return wowneroWallet.transactionHistory;
   }
 
+  @override
   WowneroWalletDetails getWowneroWalletDetails(Object wallet) {
     return CWWowneroWalletDetails(wallet);
   }
 
+  @override
   int getHeightByDate({DateTime? date}) {
     return getWowneroHeightByDate(date: date!);
   }
 
+  @override
   TransactionPriority getDefaultTransactionPriority() {
     return MoneroTransactionPriority.slow;
   }
 
+  @override
   TransactionPriority? deserializeMoneroTransactionPriority({int? raw}) {
     return MoneroTransactionPriority.deserialize(raw: raw);
   }
 
+  @override
   List<TransactionPriority> getTransactionPriorities() {
     return MoneroTransactionPriority.all;
   }
 
+  @override
   List<String> getWowneroWordList(String language, {int seedWordsLength = 14}) {
     switch (language.toLowerCase()) {
       case 'english':
@@ -190,6 +201,7 @@ class CWWownero extends Wownero {
     }
   }
 
+  @override
   WalletCredentials createWowneroRestoreWalletFromKeysCredentials(
       {String? name,
       String? spendKey,
@@ -208,12 +220,14 @@ class CWWownero extends Wownero {
         height: height);
   }
 
+  @override
   WalletCredentials createWowneroRestoreWalletFromSeedCredentials(
       {String? name, String? password, int? height, String? mnemonic}) {
     return WowneroRestoreWalletFromSeedCredentials(
         name: name, password: password, height: height, mnemonic: mnemonic);
   }
 
+  @override
   WalletCredentials createWowneroNewWalletCredentials(
       {String? name,
       String? password,
@@ -226,6 +240,7 @@ class CWWownero extends Wownero {
         seedWordsLength: seedWordsLength);
   }
 
+  @override
   Map<String, String?> getKeys(Object wallet) {
     final wowneroWallet = wallet as WowneroWallet;
     final keys = wowneroWallet.keys;
@@ -237,6 +252,7 @@ class CWWownero extends Wownero {
     };
   }
 
+  @override
   Object createWowneroTransactionCreationCredentials(
       {List<Output>? outputs, TransactionPriority? priority}) {
     return WowneroTransactionCreationCredentials(
@@ -254,56 +270,67 @@ class CWWownero extends Wownero {
         priority: priority as MoneroTransactionPriority);
   }
 
+  @override
   String formatterWowneroAmountToString({int? amount}) {
     return wowneroAmountToString(amount: amount!);
   }
 
+  @override
   double formatterWowneroAmountToDouble({int? amount}) {
     return wowneroAmountToDouble(amount: amount!);
   }
 
+  @override
   int formatterWowneroParseAmount({String? amount}) {
     return wowneroParseAmount(amount: amount!);
   }
 
+  @override
   Account getCurrentAccount(Object wallet) {
     final wowneroWallet = wallet as WowneroWallet;
     final acc = wowneroWallet.walletAddresses.account!;
     return Account(id: acc.id, label: acc.label);
   }
 
+  @override
   void setCurrentAccount(Object wallet, int id, String label) {
     final wowneroWallet = wallet as WowneroWallet;
     wowneroWallet.walletAddresses.account =
         wownero_account.Account(id: id, label: label);
   }
 
+  @override
   void onStartup() {
     wownero_wallet_api.onStartup();
   }
 
+  @override
   int? getTransactionInfoAccountId(TransactionInfo tx) {
     final wowneroTransactionInfo = tx as WowneroTransactionInfo;
     return wowneroTransactionInfo.accountIndex;
   }
 
+  @override
   WalletService createWowneroWalletService(Box<WalletInfo> walletInfoSource) {
     return WowneroWalletService(walletInfoSource);
   }
 
+  @override
   String getTransactionAddress(
       Object wallet, int accountIndex, int addressIndex) {
     final wowneroWallet = wallet as WowneroWallet;
     return wowneroWallet.getTransactionAddress(accountIndex, addressIndex);
   }
 
+  @override
   String getSubaddressLabel(Object wallet, int accountIndex, int addressIndex) {
     final wowneroWallet = wallet as WowneroWallet;
     return wowneroWallet.getSubaddressLabel(accountIndex, addressIndex);
   }
 
+  @override
   bool validateAddress(Object wallet, String address) {
     final wowneroWallet = wallet as WowneroWallet;
-    return wowneroWallet.validateAddress(address);
+    return wownerodart.Wallet_addressValid(address, 0);
   }
 }

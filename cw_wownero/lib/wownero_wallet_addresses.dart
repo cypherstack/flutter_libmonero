@@ -1,9 +1,9 @@
+import 'package:cw_core/account.dart';
+import 'package:cw_core/subaddress.dart';
 import 'package:cw_core/wallet_addresses.dart';
 import 'package:cw_core/wallet_info.dart';
-import 'package:cw_core/account.dart';
 import 'package:cw_wownero/wownero_account_list.dart';
 import 'package:cw_wownero/wownero_subaddress_list.dart';
-import 'package:cw_core/subaddress.dart';
 import 'package:mobx/mobx.dart';
 
 part 'wownero_wallet_addresses.g.dart';
@@ -77,7 +77,7 @@ abstract class WowneroWalletAddressesBase extends WalletAddresses with Store {
     return true;
   }
 
-  void updateSubaddressList({int? accountIndex}) {
+  void updateSubaddressList({required int accountIndex}) {
     subaddressList.update(accountIndex: accountIndex);
     subaddress = subaddressList.subaddresses!.first;
     address = subaddress!.address;

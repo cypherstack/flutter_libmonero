@@ -14,7 +14,7 @@ import 'package:cw_monero/monero_wallet.dart';
 import 'package:hive/hive.dart';
 
 class MoneroNewWalletCredentials extends WalletCredentials {
-  MoneroNewWalletCredentials({String? name, String? password, this.language})
+  MoneroNewWalletCredentials({required String name, required String password, this.language})
       : super(name: name, password: password);
 
   final String? language;
@@ -71,8 +71,8 @@ class MoneroWalletService extends WalletService<
           await pathForWallet(name: credentials.name!, type: getType());
       await monero_wallet_manager.createWallet(
           path: path,
-          password: credentials.password,
-          language: credentials.language);
+          password: credentials.password!,
+          language: credentials.language ?? "English");
       final wallet = MoneroWallet(walletInfo: credentials.walletInfo!);
       await wallet.init();
 
@@ -158,12 +158,12 @@ class MoneroWalletService extends WalletService<
           await pathForWallet(name: credentials.name!, type: getType());
       await monero_wallet_manager.restoreFromKeys(
           path: path,
-          password: credentials.password,
-          language: credentials.language,
-          restoreHeight: credentials.height,
-          address: credentials.address,
-          viewKey: credentials.viewKey,
-          spendKey: credentials.spendKey);
+          password: credentials.password!,
+          language: credentials.language ?? "English",
+          restoreHeight: credentials.height ?? 0,
+          address: credentials.address!,
+          viewKey: credentials.viewKey!,
+          spendKey: credentials.spendKey!);
       final wallet = MoneroWallet(walletInfo: credentials.walletInfo!);
       await wallet.init();
 
@@ -183,9 +183,9 @@ class MoneroWalletService extends WalletService<
           await pathForWallet(name: credentials.name!, type: getType());
       await monero_wallet_manager.restoreFromSeed(
           path: path,
-          password: credentials.password,
-          seed: credentials.mnemonic,
-          restoreHeight: credentials.height);
+          password: credentials.password!,
+          seed: credentials.mnemonic!,
+          restoreHeight: credentials.height??0);
       final wallet = MoneroWallet(walletInfo: credentials.walletInfo!);
       await wallet.init();
 

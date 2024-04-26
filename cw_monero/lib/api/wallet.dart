@@ -10,6 +10,7 @@ int getSyncingHeight() {
   // print("height: $height / $h2");
   return h2;
 }
+
 bool isNeededToRefresh() {
   final ret = monero.MONERO_cw_WalletListener_isNeedToRefresh(getWlptr());
   monero.MONERO_cw_WalletListener_resetNeedToRefresh(getWlptr());
@@ -21,11 +22,13 @@ bool isNewTransactionExist() {
   monero.MONERO_cw_WalletListener_resetIsNewTransactionExist(getWlptr());
   return ret;
 }
+
 String getFilename() => monero.Wallet_filename(wptr!);
 
 String getSeed() {
   // monero.Wallet_setCacheAttribute(wptr!, key: "cakewallet.seed", value: seed);
-  final cakepolyseed = monero.Wallet_getCacheAttribute(wptr!, key: "cakewallet.seed");
+  final cakepolyseed =
+      monero.Wallet_getCacheAttribute(wptr!, key: "cakewallet.seed");
   if (cakepolyseed != "") {
     return cakepolyseed;
   }
@@ -37,11 +40,18 @@ String getSeed() {
   return legacy;
 }
 
-String getAddress({int accountIndex = 0, int addressIndex = 1}) => monero.Wallet_address(wptr!, accountIndex: accountIndex, addressIndex: addressIndex);
+String getAddress({int accountIndex = 0, int addressIndex = 1}) =>
+    monero.Wallet_address(wptr!,
+        accountIndex: accountIndex, addressIndex: addressIndex);
 
-int getFullBalance({int accountIndex = 0}) => monero.Wallet_balance(wptr!, accountIndex: accountIndex);
+int getFullBalance({int accountIndex = 0}) {
+  final val = monero.Wallet_balance(wptr!, accountIndex: accountIndex);
+  print("val: $val");
+  return val;
+}
 
-int getUnlockedBalance({int accountIndex = 0}) => monero.Wallet_unlockedBalance(wptr!, accountIndex: accountIndex);
+int getUnlockedBalance({int accountIndex = 0}) =>
+    monero.Wallet_unlockedBalance(wptr!, accountIndex: accountIndex);
 
 int getCurrentHeight() => monero.Wallet_blockChainHeight(wptr!);
 
@@ -66,16 +76,14 @@ bool setupNodeSync(
   daemonPassword: $password ?? ''
 }
 ''');
-  monero.Wallet_init(
-    wptr!,
-    daemonAddress: address,
-    useSsl: useSSL,
-    proxyAddress: socksProxyAddress ?? '',
-    daemonUsername: login ?? '',
-    daemonPassword: password ?? ''
-  );
+  monero.Wallet_init(wptr!,
+      daemonAddress: address,
+      useSsl: useSSL,
+      proxyAddress: socksProxyAddress ?? '',
+      daemonUsername: login ?? '',
+      daemonPassword: password ?? '');
   // monero.Wallet_init3(wptr!, argv0: '', defaultLogBaseName: 'moneroc', console: true);
-  
+
   final status = monero.Wallet_status(wptr!);
 
   if (status != 0) {
@@ -96,9 +104,12 @@ Future<bool> connectToNode() async {
   return true;
 }
 
-void setRefreshFromBlockHeight({required int height}) => monero.Wallet_setRefreshFromBlockHeight(wptr!, refresh_from_block_height: height);
+void setRefreshFromBlockHeight({required int height}) =>
+    monero.Wallet_setRefreshFromBlockHeight(wptr!,
+        refresh_from_block_height: height);
 
-void setRecoveringFromSeed({required bool isRecovery}) => monero.Wallet_setRecoveringFromSeed(wptr!, recoveringFromSeed: isRecovery);
+void setRecoveringFromSeed({required bool isRecovery}) =>
+    monero.Wallet_setRecoveringFromSeed(wptr!, recoveringFromSeed: isRecovery);
 
 void storeSync() {
   monero.Wallet_store(wptr!);
@@ -106,7 +117,6 @@ void storeSync() {
 
 void setPasswordSync(String password) {
   monero.Wallet_setPassword(wptr!, password: password);
-
 
   final status = monero.Wallet_status(wptr!);
   if (status == 0) {
@@ -127,11 +137,10 @@ String getSecretSpendKey() => monero.Wallet_secretSpendKey(wptr!);
 String getPublicSpendKey() => monero.Wallet_publicSpendKey(wptr!);
 
 class SyncListener {
-  SyncListener(this.onNewBlock, this.onNewTransaction) 
-    : _cachedBlockchainHeight = 0,
-    _lastKnownBlockHeight = 0,
-    _initialSyncHeight = 0;
-  
+  SyncListener(this.onNewBlock, this.onNewTransaction)
+      : _cachedBlockchainHeight = 0,
+        _lastKnownBlockHeight = 0,
+        _initialSyncHeight = 0;
 
   void Function(int, int, double) onNewBlock;
   void Function() onNewTransaction;
@@ -236,7 +245,7 @@ Future<void> setupNode(
         bool isLightWallet = false}) async =>
     _setupNodeSync({
       'address': address,
-      'login': login ,
+      'login': login,
       'password': password,
       'useSSL': useSSL,
       'isLightWallet': isLightWallet,
@@ -252,10 +261,12 @@ Future<int> getNodeHeight() async => _getNodeHeight(0);
 void rescanBlockchainAsync() => monero.Wallet_rescanBlockchainAsync(wptr!);
 
 String getSubaddressLabel(int accountIndex, int addressIndex) {
-  return monero.Wallet_getSubaddressLabel(wptr!, accountIndex: accountIndex, addressIndex: addressIndex);
+  return monero.Wallet_getSubaddressLabel(wptr!,
+      accountIndex: accountIndex, addressIndex: addressIndex);
 }
 
-Future setTrustedDaemon(bool trusted) async => monero.Wallet_setTrustedDaemon(wptr!, arg: trusted);
+Future setTrustedDaemon(bool trusted) async =>
+    monero.Wallet_setTrustedDaemon(wptr!, arg: trusted);
 
 Future<bool> trustedDaemon() async => monero.Wallet_trustedDaemon(wptr!);
 

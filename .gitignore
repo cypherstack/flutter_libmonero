@@ -151,5 +151,3 @@ scripts/linux/cache
 
 scripts/windows/build
 scripts/windows/cache
-
-lib/git_versions.dart

@@ -51,8 +51,8 @@ abstract class WowneroWalletBase extends WalletBase<WowneroBalance,
     walletAddresses = WowneroWalletAddresses(walletInfo);
     _onAccountChangeReaction =
         reaction((_) => walletAddresses.account, (Account? account) {
-      balance = ObservableMap<CryptoCurrency?, WowneroBalance>.of(<
-          CryptoCurrency?, WowneroBalance>{
+      balance = ObservableMap<CryptoCurrency?,
+          WowneroBalance>.of(<CryptoCurrency?, WowneroBalance>{
         currency: WowneroBalance(
             fullBalance:
                 wownero_wallet.getFullBalance(accountIndex: account!.id),
@@ -98,8 +98,8 @@ abstract class WowneroWalletBase extends WalletBase<WowneroBalance,
 
   Future<void> init() async {
     await walletAddresses.init();
-    balance = ObservableMap<CryptoCurrency?, WowneroBalance>.of(<
-        CryptoCurrency?, WowneroBalance>{
+    balance = ObservableMap<CryptoCurrency?,
+        WowneroBalance>.of(<CryptoCurrency?, WowneroBalance>{
       currency: WowneroBalance(
           fullBalance: wownero_wallet.getFullBalance(
               accountIndex: walletAddresses.account!.id),
@@ -114,7 +114,7 @@ abstract class WowneroWalletBase extends WalletBase<WowneroBalance,
 
       if (wownero_wallet.getCurrentHeight() <= 1) {
         wownero_wallet.setRefreshFromBlockHeight(
-            height: walletInfo.restoreHeight??0);
+            height: walletInfo.restoreHeight ?? 0);
       }
     }
 
@@ -284,8 +284,8 @@ abstract class WowneroWalletBase extends WalletBase<WowneroBalance,
 
   Future<int> getNodeHeight() async => wownero_wallet.getNodeHeight();
 
-  // TODO(mrcyjanek): implement...
-  int getSeedHeight(String seed) => 1; // wownero_wallet.getSeedHeightSync(seed);
+  int getSeedHeight(String seed) =>
+      wownero.WOWNERO_deprecated_14WordSeedHeight(seed: seed);
 
   Future<bool> isConnected() async => wownero_wallet.isConnected();
 
@@ -298,7 +298,7 @@ abstract class WowneroWalletBase extends WalletBase<WowneroBalance,
   Future<void> rescan({int? height}) async {
     walletInfo.restoreHeight = height;
     walletInfo.isRecovery = true;
-    wownero_wallet.setRefreshFromBlockHeight(height: height??0);
+    wownero_wallet.setRefreshFromBlockHeight(height: height ?? 0);
     wownero_wallet.rescanBlockchainAsync();
     await startSync();
     _askForUpdateBalance();
@@ -345,22 +345,25 @@ abstract class WowneroWalletBase extends WalletBase<WowneroBalance,
   }
 
   List<WowneroTransactionInfo> _getAllTransactions(dynamic _) =>
-    wownero_transaction_history.getAllTransactions()
-    .map((row) => WowneroTransactionInfo(
-      row.hash,
-      row.blockheight,
-      row.isSpend ? TransactionDirection.outgoing : TransactionDirection.incoming,
-      row.timeStamp,
-      row.isPending,
-      row.amount,
-      row.accountIndex,
-      row.addressIndex,
-      row.fee)
-    ).toList();
-      // wownero_transaction_history
-      //     .getAllTransations()
-      //     .map((row) => WowneroTransactionInfo.fromRow(row))
-      //     .toList();
+      wownero_transaction_history
+          .getAllTransactions()
+          .map((row) => WowneroTransactionInfo(
+              row.hash,
+              row.blockheight,
+              row.isSpend
+                  ? TransactionDirection.outgoing
+                  : TransactionDirection.incoming,
+              row.timeStamp,
+              row.isPending,
+              row.amount,
+              row.accountIndex,
+              row.addressIndex,
+              row.fee))
+          .toList();
+  // wownero_transaction_history
+  //     .getAllTransations()
+  //     .map((row) => WowneroTransactionInfo.fromRow(row))
+  //     .toList();
 
   void _setListeners() {
     _listener?.stop();

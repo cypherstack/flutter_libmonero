@@ -1,4 +1,3 @@
-
 import 'dart:ffi';
 import 'dart:isolate';
 
@@ -9,7 +8,6 @@ import 'package:cw_wownero/api/wownero_output.dart';
 import 'package:ffi/ffi.dart';
 import 'package:monero/src/generated_bindings_wownero.g.dart' as wownero_gen;
 import 'package:monero/wownero.dart' as wownero;
-
 
 String getTxKey(String txId) {
   return wownero.Wallet_getTxKey(wptr!, txid: txId);
@@ -27,12 +25,17 @@ int countOfTransactions() => wownero.TransactionHistory_count(txhistory!);
 List<Transaction> getAllTransactions() {
   final size = countOfTransactions();
 
-  return List.generate(size, (index) => Transaction(txInfo: wownero.TransactionHistory_transaction(txhistory!, index: index)));
+  return List.generate(
+      size,
+      (index) => Transaction(
+          txInfo: wownero.TransactionHistory_transaction(txhistory!,
+              index: index)));
 }
 
-// TODO(mrcyjanek): ...
 Transaction getTransaction(String txId) {
-  return Transaction(txInfo: wownero.TransactionHistory_transactionById(txhistory!, txid: txId));
+  return Transaction(
+      txInfo:
+          wownero.TransactionHistory_transactionById(txhistory!, txid: txId));
 }
 
 Future<PendingTransactionDescription> createTransactionSync(
@@ -42,12 +45,12 @@ Future<PendingTransactionDescription> createTransactionSync(
     String? amount,
     int accountIndex = 0,
     List<String> preferredInputs = const []}) async {
-
   final amt = amount == null ? 0 : wownero.Wallet_amountFromString(amount);
-  
-  final address_ = address.toNativeUtf8(); 
-  final paymentId_ = paymentId.toNativeUtf8(); 
-  final preferredInputs_ = preferredInputs.join(wownero.defaultSeparatorStr).toNativeUtf8();
+
+  final address_ = address.toNativeUtf8();
+  final paymentId_ = paymentId.toNativeUtf8();
+  final preferredInputs_ =
+      preferredInputs.join(wownero.defaultSeparatorStr).toNativeUtf8();
 
   final waddr = wptr!.address;
   final addraddr = address_.address;
@@ -55,7 +58,8 @@ Future<PendingTransactionDescription> createTransactionSync(
   final preferredInputsAddr = preferredInputs_.address;
   final spaddr = wownero.defaultSeparator.address;
   final pendingTx = Pointer<Void>.fromAddress(await Isolate.run(() {
-    final tx = wownero_gen.WowneroC(DynamicLibrary.open(wownero.libPath)).WOWNERO_Wallet_createTransaction(
+    final tx = wownero_gen.WowneroC(DynamicLibrary.open(wownero.libPath))
+        .WOWNERO_Wallet_createTransaction(
       Pointer.fromAddress(waddr),
       Pointer.fromAddress(addraddr).cast(),
       Pointer.fromAddress(paymentIdAddr).cast(),
@@ -89,11 +93,11 @@ Future<PendingTransactionDescription> createTransactionSync(
   final rHash = wownero.PendingTransaction_txid(pendingTx, '');
 
   return PendingTransactionDescription(
-      amount: rAmt,
-      fee: rFee,
-      hash: rHash,
-      pointerAddress: pendingTx.address,
-    );
+    amount: rAmt,
+    fee: rFee,
+    hash: rHash,
+    pointerAddress: pendingTx.address,
+  );
 }
 
 PendingTransactionDescription createTransactionMultDestSync(
@@ -102,18 +106,19 @@ PendingTransactionDescription createTransactionMultDestSync(
     required int priorityRaw,
     int accountIndex = 0,
     List<String> preferredInputs = const []}) {
-  
   final txptr = wownero.Wallet_createTransactionMultDest(
     wptr!,
     dstAddr: outputs.map((e) => e.address!).toList(),
     isSweepAll: false,
-    amounts: outputs.map((e) => wownero.Wallet_amountFromString(e.amount)).toList(),
+    amounts:
+        outputs.map((e) => wownero.Wallet_amountFromString(e.amount)).toList(),
     mixinCount: 0,
     pendingTransactionPriority: priorityRaw,
     subaddr_account: accountIndex,
   );
   if (wownero.PendingTransaction_status(txptr) != 0) {
-    throw CreationTransactionException(message: wownero.PendingTransaction_errorString(txptr));
+    throw CreationTransactionException(
+        message: wownero.PendingTransaction_errorString(txptr));
   }
   return PendingTransactionDescription(
     amount: wownero.PendingTransaction_amount(txptr),
@@ -124,11 +129,13 @@ PendingTransactionDescription createTransactionMultDestSync(
 }
 
 void commitTransactionFromPointerAddress({required int address}) =>
-    commitTransaction(transactionPointer: wownero.PendingTransaction.fromAddress(address));
+    commitTransaction(
+        transactionPointer: wownero.PendingTransaction.fromAddress(address));
 
-void commitTransaction({required wownero.PendingTransaction transactionPointer}) {
-  
-  final txCommit = wownero.PendingTransaction_commit(transactionPointer, filename: '', overwrite: false);
+void commitTransaction(
+    {required wownero.PendingTransaction transactionPointer}) {
+  final txCommit = wownero.PendingTransaction_commit(transactionPointer,
+      filename: '', overwrite: false);
 
   final String? error = (() {
     final status = wownero.PendingTransaction_status(transactionPointer.cast());
@@ -137,7 +144,7 @@ void commitTransaction({required wownero.PendingTransaction transactionPointer})
     }
     return wownero.Wallet_errorString(wptr!);
   })();
-  
+
   if (error != null) {
     throw CreationTransactionException(message: error);
   }
@@ -205,7 +212,6 @@ Future<PendingTransactionDescription> createTransactionMultDest(
       'preferredInputs': preferredInputs
     });
 
-
 class Transaction {
   Transaction({
     required this.txInfo,
@@ -223,9 +229,11 @@ class Transaction {
         confirmations = wownero.TransactionInfo_confirmations(txInfo),
         fee = wownero.TransactionInfo_fee(txInfo),
         description = wownero.TransactionInfo_description(txInfo),
-        key = wownero.Wallet_getTxKey(wptr!, txid: wownero.TransactionInfo_hash(txInfo));
+        key = wownero.Wallet_getTxKey(wptr!,
+            txid: wownero.TransactionInfo_hash(txInfo));
   final String displayLabel;
-  String subaddressLabel = wownero.Wallet_getSubaddressLabel(wptr!, accountIndex: 0, addressIndex: 0);
+  String subaddressLabel = wownero.Wallet_getSubaddressLabel(wptr!,
+      accountIndex: 0, addressIndex: 0);
   late final String address = wownero.Wallet_address(
     wptr!,
     accountIndex: 0,

@@ -56,6 +56,9 @@ void restoreWalletFromSeedSync(
       language: seed,
       networkType: 0,
     );
+
+    wptr =
+        wownero.WalletManager_openWallet(wmPtr, path: path, password: password);
   } else {
     wptr = wownero.WalletManager_recoveryWallet(
       wmPtr,

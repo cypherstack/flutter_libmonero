@@ -1,8 +1,12 @@
 import 'dart:async';
+import 'dart:ffi';
+import 'dart:isolate';
 
 import 'package:cw_monero/api/account_list.dart';
 import 'package:cw_monero/api/exceptions/setup_wallet_exception.dart';
+import 'package:ffi/ffi.dart';
 import 'package:monero/monero.dart' as monero;
+import 'package:monero/src/generated_bindings_monero.g.dart' as monero_gen;
 
 int getSyncingHeight() {
   // final height = monero.MONERO_cw_WalletListener_height(getWlptr());
@@ -44,11 +48,8 @@ String getAddress({int accountIndex = 0, int addressIndex = 1}) =>
     monero.Wallet_address(wptr!,
         accountIndex: accountIndex, addressIndex: addressIndex);
 
-int getFullBalance({int accountIndex = 0}) {
-  final val = monero.Wallet_balance(wptr!, accountIndex: accountIndex);
-  print("val: $val");
-  return val;
-}
+int getFullBalance({int accountIndex = 0}) =>
+    monero.Wallet_balance(wptr!, accountIndex: accountIndex);
 
 int getUnlockedBalance({int accountIndex = 0}) =>
     monero.Wallet_unlockedBalance(wptr!, accountIndex: accountIndex);
@@ -57,7 +58,22 @@ int getCurrentHeight() => monero.Wallet_blockChainHeight(wptr!);
 
 int getNodeHeightSync() => monero.Wallet_daemonBlockChainHeight(wptr!);
 
-bool isConnectedSync() => monero.Wallet_connected(wptr!) != 0;
+bool isRefreshPending = false;
+bool connected = false;
+
+bool isConnectedSync() {
+  if (isRefreshPending) return connected;
+  isRefreshPending = true;
+  final addr = wptr!.address;
+  Isolate.run(() {
+    monero.lib ??= monero_gen.MoneroC(DynamicLibrary.open(monero.libPath));
+    return monero.lib!.MONERO_Wallet_connected(Pointer.fromAddress(addr));
+  }).then((value) {
+    connected = value == 1;
+    isRefreshPending = false;
+  });
+  return connected;
+}
 
 bool setupNodeSync(
     {required String address,
@@ -76,12 +92,30 @@ bool setupNodeSync(
   daemonPassword: $password ?? ''
 }
 ''');
-  monero.Wallet_init(wptr!,
-      daemonAddress: address,
-      useSsl: useSSL,
-      proxyAddress: socksProxyAddress ?? '',
-      daemonUsername: login ?? '',
-      daemonPassword: password ?? '');
+
+  final waddr = wptr!.address;
+  final address_ = address.toNativeUtf8();
+  final username_ = (login ?? '').toNativeUtf8();
+  final password_ = (password ?? '').toNativeUtf8();
+  final socksProxyAddress_ = (socksProxyAddress ?? '').toNativeUtf8();
+  Isolate.run(() {
+    monero.lib ??= monero_gen.MoneroC(DynamicLibrary.open(monero.libPath));
+    monero.lib!.MONERO_Wallet_init(
+      Pointer.fromAddress(waddr),
+      address_.cast(),
+      0,
+      username_.cast(),
+      password_.cast(),
+      useSSL,
+      isLightWallet,
+      socksProxyAddress_.cast(),
+    );
+  }).then((value) {
+    calloc.free(address_);
+    calloc.free(username_);
+    calloc.free(password_);
+    calloc.free(socksProxyAddress_);
+  });
   // monero.Wallet_init3(wptr!, argv0: '', defaultLogBaseName: 'moneroc', console: true);
 
   final status = monero.Wallet_status(wptr!);

@@ -314,8 +314,9 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
         <String, MoneroTransactionInfo>{},
         (Map<String, MoneroTransactionInfo> acc, MoneroTransactionInfo tx) {
       acc[tx.id] = tx;
-      acc[tx.id].additionalInfo["accountIndex"] = tx.accountIndex;
-      acc[tx.id].additionalInfo["addressIndex"] = tx.addressIndex;
+      acc[tx.id]!.additionalInfo ??= {};
+      acc[tx.id]!.additionalInfo!["accountIndex"] = tx.accountIndex;
+      acc[tx.id]!.additionalInfo!["addressIndex"] = tx.addressIndex;
       return acc;
     });
   }

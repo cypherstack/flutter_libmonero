@@ -1,8 +1,12 @@
 import 'dart:async';
+import 'dart:ffi';
+import 'dart:isolate';
 
 import 'package:cw_wownero/api/account_list.dart';
 import 'package:cw_wownero/api/exceptions/setup_wallet_exception.dart';
 import 'package:monero/wownero.dart' as wownero;
+import 'package:ffi/ffi.dart';
+import 'package:monero/src/generated_bindings_wownero.g.dart' as wownero_gen;
 
 int getSyncingHeight() {
   // final height = wownero.WOWNERO_cw_WalletListener_height(getWlptr());
@@ -10,6 +14,7 @@ int getSyncingHeight() {
   // print("height: $height / $h2");
   return h2;
 }
+
 bool isNeededToRefresh() {
   final ret = wownero.WOWNERO_cw_WalletListener_isNeedToRefresh(getWlptr());
   wownero.WOWNERO_cw_WalletListener_resetNeedToRefresh(getWlptr());
@@ -17,15 +22,18 @@ bool isNeededToRefresh() {
 }
 
 bool isNewTransactionExist() {
-  final ret = wownero.WOWNERO_cw_WalletListener_isNewTransactionExist(getWlptr());
+  final ret =
+      wownero.WOWNERO_cw_WalletListener_isNewTransactionExist(getWlptr());
   wownero.WOWNERO_cw_WalletListener_resetIsNewTransactionExist(getWlptr());
   return ret;
 }
+
 String getFilename() => wownero.Wallet_filename(wptr!);
 
 String getSeed() {
   // wownero.Wallet_setCacheAttribute(wptr!, key: "cakewallet.seed", value: seed);
-  final cakepolyseed = wownero.Wallet_getCacheAttribute(wptr!, key: "cakewallet.seed");
+  final cakepolyseed =
+      wownero.Wallet_getCacheAttribute(wptr!, key: "cakewallet.seed");
   if (cakepolyseed != "") {
     return cakepolyseed;
   }
@@ -37,19 +45,38 @@ String getSeed() {
   return legacy;
 }
 
-String getAddress({int accountIndex = 0, int addressIndex = 1}) => wownero.Wallet_address(wptr!, accountIndex: accountIndex, addressIndex: addressIndex);
+String getAddress({int accountIndex = 0, int addressIndex = 1}) =>
+    wownero.Wallet_address(wptr!,
+        accountIndex: accountIndex, addressIndex: addressIndex);
 
 bool addressValid(String address) => wownero.Wallet_addressValid(address, 0);
 
-int getFullBalance({int accountIndex = 0}) => wownero.Wallet_balance(wptr!, accountIndex: accountIndex);
+int getFullBalance({int accountIndex = 0}) =>
+    wownero.Wallet_balance(wptr!, accountIndex: accountIndex);
 
-int getUnlockedBalance({int accountIndex = 0}) => wownero.Wallet_unlockedBalance(wptr!, accountIndex: accountIndex);
+int getUnlockedBalance({int accountIndex = 0}) =>
+    wownero.Wallet_unlockedBalance(wptr!, accountIndex: accountIndex);
 
 int getCurrentHeight() => wownero.Wallet_blockChainHeight(wptr!);
 
 int getNodeHeightSync() => wownero.Wallet_daemonBlockChainHeight(wptr!);
 
-bool isConnectedSync() => wownero.Wallet_connected(wptr!) != 0;
+bool isRefreshPending = false;
+bool connected = false;
+
+bool isConnectedSync() {
+  if (isRefreshPending) return connected;
+  isRefreshPending = true;
+  final addr = wptr!.address;
+  Isolate.run(() {
+    wownero.lib ??= wownero_gen.WowneroC(DynamicLibrary.open(wownero.libPath));
+    return wownero.lib!.WOWNERO_Wallet_connected(Pointer.fromAddress(addr));
+  }).then((value) {
+    connected = value == 1;
+    isRefreshPending = false;
+  });
+  return connected;
+}
 
 bool setupNodeSync(
     {required String address,
@@ -68,16 +95,31 @@ bool setupNodeSync(
   daemonPassword: $password ?? ''
 }
 ''');
-  wownero.Wallet_init(
-    wptr!,
-    daemonAddress: address,
-    useSsl: useSSL,
-    proxyAddress: socksProxyAddress ?? '',
-    daemonUsername: login ?? '',
-    daemonPassword: password ?? ''
-  );
+  final waddr = wptr!.address;
+  final address_ = address.toNativeUtf8();
+  final username_ = (login ?? '').toNativeUtf8();
+  final password_ = (password ?? '').toNativeUtf8();
+  final socksProxyAddress_ = (socksProxyAddress ?? '').toNativeUtf8();
+  Isolate.run(() {
+    wownero.lib ??= wownero_gen.WowneroC(DynamicLibrary.open(wownero.libPath));
+    wownero.lib!.WOWNERO_Wallet_init(
+      Pointer.fromAddress(waddr),
+      address_.cast(),
+      0,
+      username_.cast(),
+      password_.cast(),
+      useSSL,
+      isLightWallet,
+      socksProxyAddress_.cast(),
+    );
+  }).then((value) {
+    calloc.free(address_);
+    calloc.free(username_);
+    calloc.free(password_);
+    calloc.free(socksProxyAddress_);
+  });
   // wownero.Wallet_init3(wptr!, argv0: '', defaultLogBaseName: 'wowneroc', console: true);
-  
+
   final status = wownero.Wallet_status(wptr!);
 
   if (status != 0) {
@@ -98,9 +140,12 @@ Future<bool> connectToNode() async {
   return true;
 }
 
-void setRefreshFromBlockHeight({required int height}) => wownero.Wallet_setRefreshFromBlockHeight(wptr!, refresh_from_block_height: height);
+void setRefreshFromBlockHeight({required int height}) =>
+    wownero.Wallet_setRefreshFromBlockHeight(wptr!,
+        refresh_from_block_height: height);
 
-void setRecoveringFromSeed({required bool isRecovery}) => wownero.Wallet_setRecoveringFromSeed(wptr!, recoveringFromSeed: isRecovery);
+void setRecoveringFromSeed({required bool isRecovery}) =>
+    wownero.Wallet_setRecoveringFromSeed(wptr!, recoveringFromSeed: isRecovery);
 
 void storeSync() {
   wownero.Wallet_store(wptr!);
@@ -108,7 +153,6 @@ void storeSync() {
 
 void setPasswordSync(String password) {
   wownero.Wallet_setPassword(wptr!, password: password);
-
 
   final status = wownero.Wallet_status(wptr!);
   if (status == 0) {
@@ -129,11 +173,10 @@ String getSecretSpendKey() => wownero.Wallet_secretSpendKey(wptr!);
 String getPublicSpendKey() => wownero.Wallet_publicSpendKey(wptr!);
 
 class SyncListener {
-  SyncListener(this.onNewBlock, this.onNewTransaction) 
-    : _cachedBlockchainHeight = 0,
-    _lastKnownBlockHeight = 0,
-    _initialSyncHeight = 0;
-  
+  SyncListener(this.onNewBlock, this.onNewTransaction)
+      : _cachedBlockchainHeight = 0,
+        _lastKnownBlockHeight = 0,
+        _initialSyncHeight = 0;
 
   void Function(int, int, double) onNewBlock;
   void Function() onNewTransaction;
@@ -238,7 +281,7 @@ Future<void> setupNode(
         bool isLightWallet = false}) async =>
     _setupNodeSync({
       'address': address,
-      'login': login ,
+      'login': login,
       'password': password,
       'useSSL': useSSL,
       'isLightWallet': isLightWallet,
@@ -254,10 +297,12 @@ Future<int> getNodeHeight() async => _getNodeHeight(0);
 void rescanBlockchainAsync() => wownero.Wallet_rescanBlockchainAsync(wptr!);
 
 String getSubaddressLabel(int accountIndex, int addressIndex) {
-  return wownero.Wallet_getSubaddressLabel(wptr!, accountIndex: accountIndex, addressIndex: addressIndex);
+  return wownero.Wallet_getSubaddressLabel(wptr!,
+      accountIndex: accountIndex, addressIndex: addressIndex);
 }
 
-Future setTrustedDaemon(bool trusted) async => wownero.Wallet_setTrustedDaemon(wptr!, arg: trusted);
+Future setTrustedDaemon(bool trusted) async =>
+    wownero.Wallet_setTrustedDaemon(wptr!, arg: trusted);
 
 Future<bool> trustedDaemon() async => wownero.Wallet_trustedDaemon(wptr!);
 

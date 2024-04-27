@@ -95,29 +95,41 @@ bool setupNodeSync(
   daemonPassword: $password ?? ''
 }
 ''');
+
+  // Load the wallet as "offline" first
+  // the reason being - wallet not initialized errors. we don't want crashes in here (or empty responses from functions).
+  wownero.Wallet_init(wptr!, daemonAddress: '');
+  print("init: $address");
   final waddr = wptr!.address;
-  final address_ = address.toNativeUtf8();
-  final username_ = (login ?? '').toNativeUtf8();
-  final password_ = (password ?? '').toNativeUtf8();
-  final socksProxyAddress_ = (socksProxyAddress ?? '').toNativeUtf8();
-  Isolate.run(() {
+  final address_ = address.toNativeUtf8().address;
+  final username_ = (login ?? '').toNativeUtf8().address;
+  final password_ = (password ?? '').toNativeUtf8().address;
+  final socksProxyAddress_ = (socksProxyAddress ?? '').toNativeUtf8().address;
+  Isolate.run(() async {
     wownero.lib ??= wownero_gen.WowneroC(DynamicLibrary.open(wownero.libPath));
     wownero.lib!.WOWNERO_Wallet_init(
       Pointer.fromAddress(waddr),
-      address_.cast(),
+      Pointer.fromAddress(address_).cast(),
       0,
-      username_.cast(),
-      password_.cast(),
+      Pointer.fromAddress(username_).cast(),
+      Pointer.fromAddress(password_).cast(),
       useSSL,
       isLightWallet,
-      socksProxyAddress_.cast(),
+      Pointer.fromAddress(socksProxyAddress_).cast(),
     );
   }).then((value) {
-    calloc.free(address_);
-    calloc.free(username_);
-    calloc.free(password_);
-    calloc.free(socksProxyAddress_);
+    calloc.free(Pointer.fromAddress(address_));
+    calloc.free(Pointer.fromAddress(username_));
+    calloc.free(Pointer.fromAddress(password_));
+    calloc.free(Pointer.fromAddress(socksProxyAddress_));
+    final status = wownero.Wallet_status(wptr!);
+    if (status != 0) {
+      final err = wownero.Wallet_errorString(wptr!);
+      print("init: $status");
+      print("init: $err");
+    }
   });
+
   // wownero.Wallet_init3(wptr!, argv0: '', defaultLogBaseName: 'wowneroc', console: true);
 
   final status = wownero.Wallet_status(wptr!);

@@ -10,9 +10,11 @@ import 'package:monero/wownero.dart' as wownero;
 
 wownero.WalletManager? _wmPtr;
 final wownero.WalletManager wmPtr = Pointer.fromAddress((() {
+  wownero.WalletManagerFactory_setLogLevel(4);
   try {
     wownero.printStarts = true;
     _wmPtr ??= wownero.WalletManagerFactory_getWalletManager();
+    wownero.WalletManagerFactory_setLogLevel(4);
     print("ptr: $_wmPtr");
   } catch (e) {
     print(e);

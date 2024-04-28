@@ -59,7 +59,8 @@ int getUnlockedBalance({int accountIndex = 0}) =>
 
 int getCurrentHeight() => wownero.Wallet_blockChainHeight(wptr!);
 
-int getNodeHeightSync() => wownero.Wallet_daemonBlockChainHeight(wptr!);
+int getNodeHeightSync() =>
+    wownero.WOWNERO_cw_WalletListener_height(getWlptr()!);
 
 bool isRefreshPending = false;
 bool connected = false;
@@ -78,13 +79,13 @@ bool isConnectedSync() {
   return connected;
 }
 
-bool setupNodeSync(
+Future<bool> setupNodeFuture(
     {required String address,
     String? login,
     String? password,
     bool useSSL = false,
     bool isLightWallet = false,
-    String? socksProxyAddress}) {
+    String? socksProxyAddress}) async {
   print('''
 {
   wptr!,
@@ -98,14 +99,14 @@ bool setupNodeSync(
 
   // Load the wallet as "offline" first
   // the reason being - wallet not initialized errors. we don't want crashes in here (or empty responses from functions).
-  wownero.Wallet_init(wptr!, daemonAddress: '');
+  // wownero.Wallet_init(wptr!, daemonAddress: '');
   print("init: $address");
   final waddr = wptr!.address;
   final address_ = address.toNativeUtf8().address;
   final username_ = (login ?? '').toNativeUtf8().address;
   final password_ = (password ?? '').toNativeUtf8().address;
   final socksProxyAddress_ = (socksProxyAddress ?? '').toNativeUtf8().address;
-  Isolate.run(() async {
+  await Isolate.run(() async {
     wownero.lib ??= wownero_gen.WowneroC(DynamicLibrary.open(wownero.libPath));
     wownero.lib!.WOWNERO_Wallet_init(
       Pointer.fromAddress(waddr),
@@ -117,28 +118,23 @@ bool setupNodeSync(
       isLightWallet,
       Pointer.fromAddress(socksProxyAddress_).cast(),
     );
-  }).then((value) {
-    calloc.free(Pointer.fromAddress(address_));
-    calloc.free(Pointer.fromAddress(username_));
-    calloc.free(Pointer.fromAddress(password_));
-    calloc.free(Pointer.fromAddress(socksProxyAddress_));
-    final status = wownero.Wallet_status(wptr!);
-    if (status != 0) {
-      final err = wownero.Wallet_errorString(wptr!);
-      print("init: $status");
-      print("init: $err");
-    }
   });
-
-  // wownero.Wallet_init3(wptr!, argv0: '', defaultLogBaseName: 'wowneroc', console: true);
-
+  calloc.free(Pointer.fromAddress(address_));
+  calloc.free(Pointer.fromAddress(username_));
+  calloc.free(Pointer.fromAddress(password_));
+  calloc.free(Pointer.fromAddress(socksProxyAddress_));
   final status = wownero.Wallet_status(wptr!);
-
   if (status != 0) {
-    final error = wownero.Wallet_errorString(wptr!);
-    print("error: $error");
-    throw SetupWalletException(message: error);
+    final err = wownero.Wallet_errorString(wptr!);
+    print("init: $status");
+    print("init: $err");
+    throw SetupWalletException(message: err);
   }
+  wownero.Wallet_init3(wptr!,
+      argv0: "stack_wallet",
+      defaultLogBaseName: "",
+      logPath: "/dev/shm/wow.log",
+      console: true);
 
   return status == 0;
 }
@@ -261,7 +257,7 @@ void onStartup() {}
 
 void _storeSync(Object _) => storeSync();
 
-bool _setupNodeSync(Map<String, Object?> args) {
+Future<bool> _setupNode(Map<String, Object?> args) async {
   final address = args['address'] as String;
   final login = (args['login'] ?? '') as String;
   final password = (args['password'] ?? '') as String;
@@ -269,7 +265,7 @@ bool _setupNodeSync(Map<String, Object?> args) {
   final isLightWallet = args['isLightWallet'] as bool;
   final socksProxyAddress = (args['socksProxyAddress'] ?? '') as String;
 
-  return setupNodeSync(
+  return setupNodeFuture(
       address: address,
       login: login,
       password: password,
@@ -291,7 +287,7 @@ Future<void> setupNode(
         bool useSSL = false,
         String? socksProxyAddress,
         bool isLightWallet = false}) async =>
-    _setupNodeSync({
+    await _setupNode({
       'address': address,
       'login': login,
       'password': password,

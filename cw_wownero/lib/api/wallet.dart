@@ -59,8 +59,7 @@ int getUnlockedBalance({int accountIndex = 0}) =>
 
 int getCurrentHeight() => wownero.Wallet_blockChainHeight(wptr!);
 
-int getNodeHeightSync() =>
-    wownero.WOWNERO_cw_WalletListener_height(getWlptr()!);
+int getNodeHeightSync() => wownero.Wallet_daemonBlockChainHeight(wptr!);
 
 bool isRefreshPending = false;
 bool connected = false;

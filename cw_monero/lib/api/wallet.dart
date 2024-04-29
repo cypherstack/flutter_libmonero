@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:isolate';
+import 'dart:io';
 
 import 'package:cw_monero/api/account_list.dart';
 import 'package:cw_monero/api/exceptions/setup_wallet_exception.dart';
@@ -75,13 +76,13 @@ bool isConnectedSync() {
   return connected;
 }
 
-bool setupNodeSync(
+Future<bool> setupNodeFuture(
     {required String address,
     String? login,
     String? password,
     bool useSSL = false,
     bool isLightWallet = false,
-    String? socksProxyAddress}) {
+    String? socksProxyAddress}) async {
   print('''
 {
   wptr!,
@@ -93,37 +94,38 @@ bool setupNodeSync(
 }
 ''');
 
+  // Load the wallet as "offline" first
+  // the reason being - wallet not initialized errors. we don't want crashes in here (or empty responses from functions).
+  // monero.Wallet_init(wptr!, daemonAddress: '');
+  print("init: $address");
   final waddr = wptr!.address;
-  final address_ = address.toNativeUtf8();
-  final username_ = (login ?? '').toNativeUtf8();
-  final password_ = (password ?? '').toNativeUtf8();
-  final socksProxyAddress_ = (socksProxyAddress ?? '').toNativeUtf8();
-  Isolate.run(() {
+  final address_ = address.toNativeUtf8().address;
+  final username_ = (login ?? '').toNativeUtf8().address;
+  final password_ = (password ?? '').toNativeUtf8().address;
+  final socksProxyAddress_ = (socksProxyAddress ?? '').toNativeUtf8().address;
+  await Isolate.run(() async {
     monero.lib ??= monero_gen.MoneroC(DynamicLibrary.open(monero.libPath));
     monero.lib!.MONERO_Wallet_init(
       Pointer.fromAddress(waddr),
-      address_.cast(),
+      Pointer.fromAddress(address_).cast(),
       0,
-      username_.cast(),
-      password_.cast(),
+      Pointer.fromAddress(username_).cast(),
+      Pointer.fromAddress(password_).cast(),
       useSSL,
       isLightWallet,
-      socksProxyAddress_.cast(),
+      Pointer.fromAddress(socksProxyAddress_).cast(),
     );
-  }).then((value) {
-    calloc.free(address_);
-    calloc.free(username_);
-    calloc.free(password_);
-    calloc.free(socksProxyAddress_);
   });
-  // monero.Wallet_init3(wptr!, argv0: '', defaultLogBaseName: 'moneroc', console: true);
-
-  final status = monero.Wallet_status(wptr!);
-
+  calloc.free(Pointer.fromAddress(address_));
+  calloc.free(Pointer.fromAddress(username_));
+  calloc.free(Pointer.fromAddress(password_));
+  calloc.free(Pointer.fromAddress(socksProxyAddress_));
+  int status = monero.Wallet_status(wptr!);
   if (status != 0) {
-    final error = monero.Wallet_errorString(wptr!);
-    print("error: $error");
-    throw SetupWalletException(message: error);
+    final err = monero.Wallet_errorString(wptr!);
+    print("init: $status");
+    print("init: $err");
+    throw SetupWalletException(message: err);
   }
 
   return status == 0;
@@ -247,7 +249,7 @@ void onStartup() {}
 
 void _storeSync(Object _) => storeSync();
 
-bool _setupNodeSync(Map<String, Object?> args) {
+Future<bool> _setupNode(Map<String, Object?> args) async {
   final address = args['address'] as String;
   final login = (args['login'] ?? '') as String;
   final password = (args['password'] ?? '') as String;
@@ -255,7 +257,7 @@ bool _setupNodeSync(Map<String, Object?> args) {
   final isLightWallet = args['isLightWallet'] as bool;
   final socksProxyAddress = (args['socksProxyAddress'] ?? '') as String;
 
-  return setupNodeSync(
+  return setupNodeFuture(
       address: address,
       login: login,
       password: password,
@@ -277,7 +279,7 @@ Future<void> setupNode(
         bool useSSL = false,
         String? socksProxyAddress,
         bool isLightWallet = false}) async =>
-    _setupNodeSync({
+    await _setupNode({
       'address': address,
       'login': login,
       'password': password,

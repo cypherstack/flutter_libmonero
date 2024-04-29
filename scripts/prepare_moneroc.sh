@@ -13,6 +13,18 @@ then
     git submodule update --init --force --recursive
     ./apply_patches.sh monero
     ./apply_patches.sh wownero
+else
+    cd monero_c
+fi
+
+if [[ ! -f "monero/.patch-applied" ]];
+then
+    ./apply_patches.sh monero
+fi
+
+if [[ ! -f "wownero/.patch-applied" ]];
+then
+    ./apply_patches.sh wownero
 fi
 
 echo "monero_c source prepared".

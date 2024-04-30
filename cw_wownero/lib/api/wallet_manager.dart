@@ -28,7 +28,7 @@ void createWalletSync(
     required String language,
     int nettype = 0}) {
   wptr = wownero.WalletManager_createWallet(wmPtr,
-      path: path, password: password, language: language, networkType: 0);
+      path: path, password: password, language: language, networkType: nettype);
 
   final status = wownero.Wallet_status(wptr!);
   if (status != 0) {
@@ -56,7 +56,7 @@ void restoreWalletFromSeedSync(
       path: path,
       password: password,
       language: seed,
-      networkType: 0,
+      networkType: nettype,
     );
 
     wptr =
@@ -69,10 +69,10 @@ void restoreWalletFromSeedSync(
       mnemonic: seed,
       restoreHeight: restoreHeight,
       seedOffset: '',
-      networkType: 0,
+      networkType: nettype,
     );
   }
-  print("wptr: $wptr");
+  // print("wptr: $wptr");
   final status = wownero.Wallet_status(wptr!);
 
   if (status != 0) {
@@ -98,7 +98,7 @@ void restoreWalletFromKeysSync(
     addressString: address,
     viewKeyString: viewKey,
     spendKeyString: spendKey,
-    nettype: 0,
+    nettype: nettype,
   );
 
   final status = wownero.Wallet_status(wptr!);

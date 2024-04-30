@@ -130,16 +130,19 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
   }
 
   @override
-  Future<void> connectToNode({required Node node}) async {
+  Future<void> connectToNode(
+      {required Node node, required String? socksProxyAddress}) async {
     try {
       syncStatus = ConnectingSyncStatus();
       syncStatusChanged?.call();
       await monero_wallet.setupNode(
-          address: node.uri.toString(),
-          login: node.login,
-          password: node.password,
-          useSSL: node.isSSL,
-          isLightWallet: false); // FIXME: hardcoded value
+        address: node.uri.toString(),
+        login: node.login,
+        password: node.password,
+        useSSL: node.isSSL,
+        isLightWallet: false, // FIXME: hardcoded value
+        socksProxyAddress: socksProxyAddress,
+      );
 
       await monero_wallet.setTrustedDaemon(node.trusted);
       syncStatus = ConnectedSyncStatus();

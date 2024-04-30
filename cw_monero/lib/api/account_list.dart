@@ -49,7 +49,6 @@ void addAccountSync({required String label}) {
 }
 
 void setLabelForAccountSync({required int accountIndex, required String label}) {
-  // TODO(mrcyjanek): this may be wrong function?
   monero.Wallet_setSubaddressLabel(wptr!, accountIndex: accountIndex, addressIndex: 0, label: label);
 }
 

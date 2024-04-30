@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -x -e
 
@@ -28,5 +28,5 @@ pushd ../monero_c
     ./build_single.sh wownero x86_64-linux-gnu -j8
 popd
 
-unxz -f ../monero_c/release/monero/x86_64-linux-gnu_libwallet2_api_c.dylib.xz
-unxz -f ../monero_c/release/wownero/x86_64-linux-gnu_libwallet2_api_c.dylib.xz
+unxz -f ../monero_c/release/monero/x86_64-linux-gnu_libwallet2_api_c.so.xz
+unxz -f ../monero_c/release/wownero/x86_64-linux-gnu_libwallet2_api_c.so.xz

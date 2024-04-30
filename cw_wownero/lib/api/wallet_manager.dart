@@ -1,4 +1,3 @@
-
 import 'dart:ffi';
 
 import 'package:cw_wownero/api/account_list.dart';
@@ -11,9 +10,11 @@ import 'package:monero/wownero.dart' as wownero;
 
 wownero.WalletManager? _wmPtr;
 final wownero.WalletManager wmPtr = Pointer.fromAddress((() {
+  wownero.WalletManagerFactory_setLogLevel(4);
   try {
     wownero.printStarts = true;
     _wmPtr ??= wownero.WalletManagerFactory_getWalletManager();
+    wownero.WalletManagerFactory_setLogLevel(4);
     print("ptr: $_wmPtr");
   } catch (e) {
     print(e);
@@ -23,10 +24,11 @@ final wownero.WalletManager wmPtr = Pointer.fromAddress((() {
 
 void createWalletSync(
     {required String path,
-     required String password,
-     required String language,
-     int nettype = 0}) {
-  wptr = wownero.WalletManager_createWallet(wmPtr, path: path, password: password, language: language, networkType: 0);
+    required String password,
+    required String language,
+    int nettype = 0}) {
+  wptr = wownero.WalletManager_createWallet(wmPtr,
+      path: path, password: password, language: language, networkType: 0);
 
   final status = wownero.Wallet_status(wptr!);
   if (status != 0) {
@@ -48,17 +50,29 @@ void restoreWalletFromSeedSync(
     required String seed,
     int nettype = 0,
     int restoreHeight = 0}) {
+  if (seed.split(" ").length == 14) {
+    // typo on my end, language is seed.
+    wptr = wownero.WOWNERO_deprecated_restore14WordSeed(
+      path: path,
+      password: password,
+      language: seed,
+      networkType: 0,
+    );
 
-  wptr = wownero.WalletManager_recoveryWallet(
-    wmPtr,
-    path: path,
-    password: password,
-    mnemonic: seed,
-    restoreHeight: restoreHeight,
-    seedOffset: '',
-    networkType: 0,
-  );
-  
+    wptr =
+        wownero.WalletManager_openWallet(wmPtr, path: path, password: password);
+  } else {
+    wptr = wownero.WalletManager_recoveryWallet(
+      wmPtr,
+      path: path,
+      password: password,
+      mnemonic: seed,
+      restoreHeight: restoreHeight,
+      seedOffset: '',
+      networkType: 0,
+    );
+  }
+  print("wptr: $wptr");
   final status = wownero.Wallet_status(wptr!);
 
   if (status != 0) {
@@ -76,7 +90,6 @@ void restoreWalletFromKeysSync(
     required String spendKey,
     int nettype = 0,
     int restoreHeight = 0}) {
-
   wptr = wownero.WalletManager_createWalletFromKeys(
     wmPtr,
     path: path,
@@ -87,22 +100,22 @@ void restoreWalletFromKeysSync(
     spendKeyString: spendKey,
     nettype: 0,
   );
-  
+
   final status = wownero.Wallet_status(wptr!);
   if (status != 0) {
-    throw WalletRestoreFromKeysException(message: wownero.Wallet_errorString(wptr!));
+    throw WalletRestoreFromKeysException(
+        message: wownero.Wallet_errorString(wptr!));
   }
 }
 
 void restoreWalletFromSpendKeySync(
     {required String path,
-      required String password,
-      required String seed,
-      required String language,
-      required String spendKey,
-      int nettype = 0,
-      int restoreHeight = 0}) {
-
+    required String password,
+    required String seed,
+    required String language,
+    required String spendKey,
+    int nettype = 0,
+    int restoreHeight = 0}) {
   // wptr = wownero.WalletManager_createWalletFromKeys(
   //   wmPtr,
   //   path: path,
@@ -139,16 +152,15 @@ void restoreWalletFromSpendKeySync(
 
 String _lastOpenedWallet = "";
 
-void loadWallet({
-  required String path,
-  required String password,
-  int nettype = 0}) {
+void loadWallet(
+    {required String path, required String password, int nettype = 0}) {
   try {
     if (wptr == null || path != _lastOpenedWallet) {
       if (wptr != null) {
         wownero.Wallet_store(wptr!);
       }
-      wptr = wownero.WalletManager_openWallet(wmPtr, path: path, password: password);
+      wptr = wownero.WalletManager_openWallet(wmPtr,
+          path: path, password: password);
       _lastOpenedWallet = path;
     }
   } catch (e) {
@@ -216,12 +228,15 @@ void _restoreFromSpendKey(Map<String, dynamic> args) {
       spendKey: spendKey);
 }
 
-Future<void> _openWallet(Map<String, String> args) async =>
-    loadWallet(path: args['path'] as String, password: args['password'] as String);
+Future<void> _openWallet(Map<String, String> args) async => loadWallet(
+    path: args['path'] as String, password: args['password'] as String);
 
 Future<bool> _isWalletExist(String path) async => isWalletExistSync(path: path);
 
-void openWallet({required String path, required String password, int nettype = 0}) async =>
+void openWallet(
+        {required String path,
+        required String password,
+        int nettype = 0}) async =>
     loadWallet(path: path, password: password, nettype: nettype);
 
 Future<void> openWalletAsync(Map<String, String> args) async =>
@@ -274,13 +289,13 @@ Future<void> restoreFromKeys(
     });
 
 Future<void> restoreFromSpendKey(
-    {required String path,
-      required String password,
-      required String seed,
-      required String language,
-      required String spendKey,
-      int nettype = 0,
-      int restoreHeight = 0}) async =>
+        {required String path,
+        required String password,
+        required String seed,
+        required String language,
+        required String spendKey,
+        int nettype = 0,
+        int restoreHeight = 0}) async =>
     _restoreFromSpendKey({
       'path': path,
       'password': password,

@@ -13,7 +13,6 @@ wownero.WalletListener getWlptr() {
   return _wlptr!;
 }
 
-
 wownero.SubaddressAccount? subaddressAccount;
 
 bool isUpdating = false;
@@ -40,7 +39,8 @@ List<wownero.SubaddressAccountRow> getAllAccount() {
     return getAllAccount();
   }
   return List.generate(size, (index) {
-    return wownero.SubaddressAccount_getAll_byIndex(subaddressAccount!, index: index);
+    return wownero.SubaddressAccount_getAll_byIndex(subaddressAccount!,
+        index: index);
   });
 }
 
@@ -48,9 +48,10 @@ void addAccountSync({required String label}) {
   wownero.Wallet_addSubaddressAccount(wptr!, label: label);
 }
 
-void setLabelForAccountSync({required int accountIndex, required String label}) {
-  // TODO(mrcyjanek): this may be wrong function?
-  wownero.Wallet_setSubaddressLabel(wptr!, accountIndex: accountIndex, addressIndex: 0, label: label);
+void setLabelForAccountSync(
+    {required int accountIndex, required String label}) {
+  wownero.Wallet_setSubaddressLabel(wptr!,
+      accountIndex: accountIndex, addressIndex: 0, label: label);
 }
 
 void _addAccount(String label) => addAccountSync(label: label);
@@ -67,7 +68,8 @@ Future<void> addAccount({required String label}) async {
   await store();
 }
 
-Future<void> setLabelForAccount({required int accountIndex, required String label}) async {
-    _setLabelForAccount({'accountIndex': accountIndex, 'label': label});
-    await store();
+Future<void> setLabelForAccount(
+    {required int accountIndex, required String label}) async {
+  _setLabelForAccount({'accountIndex': accountIndex, 'label': label});
+  await store();
 }

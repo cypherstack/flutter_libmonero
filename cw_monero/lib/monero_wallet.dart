@@ -51,8 +51,8 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
     walletAddresses = MoneroWalletAddresses(walletInfo);
     _onAccountChangeReaction =
         reaction((_) => walletAddresses.account, (Account? account) {
-      balance = ObservableMap<CryptoCurrency?, MoneroBalance>.of(<
-          CryptoCurrency?, MoneroBalance>{
+      balance = ObservableMap<CryptoCurrency?,
+          MoneroBalance>.of(<CryptoCurrency?, MoneroBalance>{
         currency: MoneroBalance(
             fullBalance:
                 monero_wallet.getFullBalance(accountIndex: account!.id),
@@ -130,16 +130,19 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
   }
 
   @override
-  Future<void> connectToNode({required Node node}) async {
+  Future<void> connectToNode(
+      {required Node node, required String? socksProxyAddress}) async {
     try {
       syncStatus = ConnectingSyncStatus();
       syncStatusChanged?.call();
       await monero_wallet.setupNode(
-          address: node.uri.toString(),
-          login: node.login,
-          password: node.password,
-          useSSL: node.isSSL,
-          isLightWallet: false); // FIXME: hardcoded value
+        address: node.uri.toString(),
+        login: node.login,
+        password: node.password,
+        useSSL: node.isSSL,
+        isLightWallet: false, // FIXME: hardcoded value
+        socksProxyAddress: socksProxyAddress,
+      );
 
       await monero_wallet.setTrustedDaemon(node.trusted);
       syncStatus = ConnectedSyncStatus();
@@ -314,6 +317,9 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
         <String, MoneroTransactionInfo>{},
         (Map<String, MoneroTransactionInfo> acc, MoneroTransactionInfo tx) {
       acc[tx.id] = tx;
+      acc[tx.id]!.additionalInfo ??= {};
+      acc[tx.id]!.additionalInfo!["accountIndex"] = tx.accountIndex;
+      acc[tx.id]!.additionalInfo!["addressIndex"] = tx.addressIndex;
       return acc;
     });
   }
@@ -348,17 +354,19 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
         return MoneroTransactionInfo(
           row.hash,
           row.blockheight,
-          row.isSpend ? TransactionDirection.outgoing : TransactionDirection.incoming,
+          row.isSpend
+              ? TransactionDirection.outgoing
+              : TransactionDirection.incoming,
           row.timeStamp,
           row.isPending,
           row.amount,
-          row.accountIndex, 
+          row.accountIndex,
           row.addressIndex,
           row.fee,
         );
       }).toList();
-          // .map((row) => MoneroTransactionInfo.fromRow(row))
-          // .toList();
+  // .map((row) => MoneroTransactionInfo.fromRow(row))
+  // .toList();
 
   void _setListeners() {
     _listener?.stop();

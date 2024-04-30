@@ -50,7 +50,8 @@ abstract class WalletBase<
 
   HistoryType? transactionHistory;
 
-  Future<void> connectToNode({required Node node});
+  Future<void> connectToNode(
+      {required Node node, required String? socksProxyAddress});
 
   Future<void> startSync();
 

@@ -73,10 +73,11 @@ class WowneroWalletService extends WalletService<
       final path =
           await pathForWallet(name: credentials.name!, type: getType());
       await wownero_wallet_manager.createWallet(
-          path: path,
-          password: credentials.password!,
-          language: credentials.language??"English",
-          /*seedWordsLength: seedWordsLength*/);
+        path: path,
+        password: credentials.password!,
+        language: credentials.language ??
+            "English", /*seedWordsLength: seedWordsLength*/
+      );
       final wallet = WowneroWallet(walletInfo: credentials.walletInfo!);
       await wallet.init();
 
@@ -163,8 +164,8 @@ class WowneroWalletService extends WalletService<
       await wownero_wallet_manager.restoreFromKeys(
           path: path,
           password: credentials.password!,
-          language: credentials.language??"English",
-          restoreHeight: credentials.height??0,
+          language: credentials.language ?? "English",
+          restoreHeight: credentials.height ?? 0,
           address: credentials.address!,
           viewKey: credentials.viewKey!,
           spendKey: credentials.spendKey!);
@@ -190,7 +191,7 @@ class WowneroWalletService extends WalletService<
           path: path,
           password: credentials.password!,
           seed: credentials.mnemonic!,
-          restoreHeight: credentials.height??0);
+          restoreHeight: credentials.height ?? 0);
       final wallet = WowneroWallet(walletInfo: credentials.walletInfo!);
       wallet.walletInfo.isRecovery = true;
 

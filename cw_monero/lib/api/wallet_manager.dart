@@ -167,6 +167,7 @@ void loadWallet(
     if (wptr == null || path != _lastOpenedWallet) {
       if (wptr != null) {
         monero.Wallet_store(wptr!);
+        monero.WalletManager_closeWallet(wmPtr, wptr!, true);
       }
       wptr = monero.WalletManager_openWallet(wmPtr,
           path: path, password: password);
@@ -178,7 +179,7 @@ void loadWallet(
   final status = monero.Wallet_status(wptr!);
   if (status != 0) {
     final err = monero.Wallet_errorString(wptr!);
-    print(err);
+    print("status: " + err);
     throw WalletOpeningException(message: err);
   }
 }

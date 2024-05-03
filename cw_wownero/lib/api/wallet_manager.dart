@@ -158,6 +158,7 @@ void loadWallet(
     if (wptr == null || path != _lastOpenedWallet) {
       if (wptr != null) {
         wownero.Wallet_store(wptr!);
+        wownero.WalletManager_closeWallet(wmPtr, wptr!, true);
       }
       wptr = wownero.WalletManager_openWallet(wmPtr,
           path: path, password: password);

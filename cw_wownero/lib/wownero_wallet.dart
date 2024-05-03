@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cw_core/account.dart';
 import 'package:cw_core/crypto_currency.dart';
@@ -275,7 +276,9 @@ abstract class WowneroWalletBase extends WalletBase<WowneroBalance,
   Future<bool> save({bool prioritySave = false}) async {
     print("save is called");
     await walletAddresses.updateAddressesInBox();
-    await backupWalletFiles(name: name!, type: WalletType.wownero);
+    if (!Platform.isWindows) {
+      await backupWalletFiles(name: name!, type: WalletType.wownero);
+    }
     await wownero_wallet.store();
     return true;
   }

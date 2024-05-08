@@ -35,7 +35,7 @@ void createWalletSync(
     throw WalletCreationException(message: wownero.Wallet_errorString(wptr!));
   }
   wownero.Wallet_store(wptr!, path: path);
-
+  openedWalletsByPath[path] = wptr!;
   // is the line below needed?
   // setupNodeSync(address: "node.wowneroworld.com:18089");
 }
@@ -79,6 +79,8 @@ void restoreWalletFromSeedSync(
     final error = wownero.Wallet_errorString(wptr!);
     throw WalletRestoreFromSeedException(message: error);
   }
+
+  openedWalletsByPath[path] = wptr!;
 }
 
 void restoreWalletFromKeysSync(
@@ -106,6 +108,8 @@ void restoreWalletFromKeysSync(
     throw WalletRestoreFromKeysException(
         message: wownero.Wallet_errorString(wptr!));
   }
+
+  openedWalletsByPath[path] = wptr!;
 }
 
 void restoreWalletFromSpendKeySync(
@@ -148,20 +152,28 @@ void restoreWalletFromSpendKeySync(
   wownero.Wallet_setCacheAttribute(wptr!, key: "cakewallet.seed", value: seed);
 
   storeSync();
+
+  openedWalletsByPath[path] = wptr!;
 }
 
 String _lastOpenedWallet = "";
 
+Map<String, wownero.wallet> openedWalletsByPath = {};
+
 void loadWallet(
     {required String path, required String password, int nettype = 0}) {
+  if (openedWalletsByPath[path] != null) {
+    wptr = openedWalletsByPath[path]!;
+    return;
+  }
   try {
     if (wptr == null || path != _lastOpenedWallet) {
       if (wptr != null) {
         wownero.Wallet_store(wptr!);
-        wownero.WalletManager_closeWallet(wmPtr, wptr!, true);
       }
       wptr = wownero.WalletManager_openWallet(wmPtr,
           path: path, password: password);
+      openedWalletsByPath[path] = wptr!;
       _lastOpenedWallet = path;
     }
   } catch (e) {

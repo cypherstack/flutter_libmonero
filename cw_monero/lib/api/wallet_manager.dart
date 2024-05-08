@@ -44,6 +44,7 @@ void createWalletSync(
     throw WalletCreationException(message: monero.Wallet_errorString(wptr!));
   }
   monero.Wallet_store(wptr!, path: path);
+  openedWalletsByPath[path] = wptr!;
 
   // is the line below needed?
   // setupNodeSync(address: "node.moneroworld.com:18089");
@@ -88,6 +89,8 @@ void restoreWalletFromSeedSync(
     final error = monero.Wallet_errorString(wptr!);
     throw WalletRestoreFromSeedException(message: error);
   }
+
+  openedWalletsByPath[path] = wptr!;
 }
 
 void restoreWalletFromKeysSync(
@@ -115,6 +118,8 @@ void restoreWalletFromKeysSync(
     throw WalletRestoreFromKeysException(
         message: monero.Wallet_errorString(wptr!));
   }
+
+  openedWalletsByPath[path] = wptr!;
 }
 
 void restoreWalletFromSpendKeySync(
@@ -157,20 +162,29 @@ void restoreWalletFromSpendKeySync(
   monero.Wallet_setCacheAttribute(wptr!, key: "cakewallet.seed", value: seed);
 
   storeSync();
+
+  openedWalletsByPath[path] = wptr!;
 }
 
 String _lastOpenedWallet = "";
 
+Map<String, monero.wallet> openedWalletsByPath = {};
+
 void loadWallet(
     {required String path, required String password, int nettype = 0}) {
+  if (openedWalletsByPath[path] != null) {
+    wptr = openedWalletsByPath[path]!;
+    return;
+  }
+
   try {
     if (wptr == null || path != _lastOpenedWallet) {
       if (wptr != null) {
         monero.Wallet_store(wptr!);
-        monero.WalletManager_closeWallet(wmPtr, wptr!, true);
       }
       wptr = monero.WalletManager_openWallet(wmPtr,
           path: path, password: password);
+      openedWalletsByPath[path] = wptr!;
       _lastOpenedWallet = path;
     }
   } catch (e) {

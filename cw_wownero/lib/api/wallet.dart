@@ -155,7 +155,10 @@ void setRecoveringFromSeed({required bool isRecovery}) =>
     wownero.Wallet_setRecoveringFromSeed(wptr!, recoveringFromSeed: isRecovery);
 
 void storeSync() {
-  wownero.Wallet_store(wptr!);
+  final addr = wptr!.address;
+  Isolate.run(() {
+    wownero.Wallet_store(Pointer.fromAddress(addr));
+  });
 }
 
 void setPasswordSync(String password) {

@@ -1,5 +1,5 @@
 import 'dart:ffi';
-
+import 'dart:isolate';
 import 'package:cw_monero/api/account_list.dart';
 import 'package:cw_monero/api/exceptions/wallet_creation_exception.dart';
 import 'package:cw_monero/api/exceptions/wallet_opening_exception.dart';
@@ -11,7 +11,7 @@ import 'package:monero/monero.dart' as monero;
 monero.WalletManager? _wmPtr;
 final monero.WalletManager wmPtr = Pointer.fromAddress((() {
   try {
-    monero.printStarts = true;
+    monero.printStarts = false;
     _wmPtr ??= monero.WalletManagerFactory_getWalletManager();
     print("ptr: $_wmPtr");
   } catch (e) {
@@ -43,7 +43,11 @@ void createWalletSync(
   if (status != 0) {
     throw WalletCreationException(message: monero.Wallet_errorString(wptr!));
   }
-  monero.Wallet_store(wptr!, path: path);
+
+  final addr = wptr!.address;
+  Isolate.run(() {
+    monero.Wallet_store(Pointer.fromAddress(addr), path: path);
+  });
   openedWalletsByPath[path] = wptr!;
 
   // is the line below needed?
@@ -180,7 +184,10 @@ void loadWallet(
   try {
     if (wptr == null || path != _lastOpenedWallet) {
       if (wptr != null) {
-        monero.Wallet_store(wptr!);
+        final addr = wptr!.address;
+        Isolate.run(() {
+          monero.Wallet_store(Pointer.fromAddress(addr));
+        });
       }
       wptr = monero.WalletManager_openWallet(wmPtr,
           path: path, password: password);

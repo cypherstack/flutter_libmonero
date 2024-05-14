@@ -1,5 +1,5 @@
 import 'dart:ffi';
-
+import 'dart:isolate';
 import 'package:cw_wownero/api/account_list.dart';
 import 'package:cw_wownero/api/exceptions/wallet_creation_exception.dart';
 import 'package:cw_wownero/api/exceptions/wallet_opening_exception.dart';
@@ -12,7 +12,7 @@ wownero.WalletManager? _wmPtr;
 final wownero.WalletManager wmPtr = Pointer.fromAddress((() {
   wownero.WalletManagerFactory_setLogLevel(4);
   try {
-    wownero.printStarts = true;
+    wownero.printStarts = false;
     _wmPtr ??= wownero.WalletManagerFactory_getWalletManager();
     wownero.WalletManagerFactory_setLogLevel(4);
     print("ptr: $_wmPtr");
@@ -34,7 +34,10 @@ void createWalletSync(
   if (status != 0) {
     throw WalletCreationException(message: wownero.Wallet_errorString(wptr!));
   }
-  wownero.Wallet_store(wptr!, path: path);
+  final addr = wptr!.address;
+  Isolate.run(() {
+    wownero.Wallet_store(Pointer.fromAddress(addr), path: path);
+  });
   openedWalletsByPath[path] = wptr!;
   // is the line below needed?
   // setupNodeSync(address: "node.wowneroworld.com:18089");
@@ -169,7 +172,10 @@ void loadWallet(
   try {
     if (wptr == null || path != _lastOpenedWallet) {
       if (wptr != null) {
-        wownero.Wallet_store(wptr!);
+        final addr = wptr!.address;
+        Isolate.run(() {
+          wownero.Wallet_store(Pointer.fromAddress(addr));
+        });
       }
       wptr = wownero.WalletManager_openWallet(wmPtr,
           path: path, password: password);

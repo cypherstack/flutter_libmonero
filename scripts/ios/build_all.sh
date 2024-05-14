@@ -18,3 +18,6 @@ popd
 
 unxz -f ../monero_c/release/monero/host-apple-ios_libwallet2_api_c.dylib.xz
 unxz -f ../monero_c/release/wownero/host-apple-ios_libwallet2_api_c.dylib.xz
+
+ln -s $(realpath ../monero_c/release/monero/host-apple-ios_libwallet2_api_c.dylib) ../../../../ios/monero_libwallet2_api_c.dylib || true
+ln -s $(realpath ../monero_c/release/wownero/host-apple-ios_libwallet2_api_c.dylib) ../../../../ios/wownero_libwallet2_api_c.dylib || true

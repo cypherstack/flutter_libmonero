@@ -10,8 +10,8 @@ if [ ! -f "$VERSIONS_FILE" ]; then
     cp $EXAMPLE_VERSIONS_FILE $VERSIONS_FILE
 fi
 COMMIT=$(git log -1 --pretty=format:"%H")
-OS="LINUX"
-sed -i "/\/\*${OS}_VERSION/c\\/\*${OS}_VERSION\*\/ const ${OS}_VERSION = \"$COMMIT\";" $VERSIONS_FILE
+OSX="OSX"
+sed -i '' "/\/\*${OS}_VERSION/c\\/\*${OS}_VERSION\*\/ const ${OS}_VERSION = \"$COMMIT\";" $VERSIONS_FILE
 
 cd "$(dirname "$0")"
 

@@ -148,7 +148,10 @@ void setRecoveringFromSeed({required bool isRecovery}) =>
     monero.Wallet_setRecoveringFromSeed(wptr!, recoveringFromSeed: isRecovery);
 
 void storeSync() {
-  monero.Wallet_store(wptr!);
+  final addr = wptr!.address;
+  Isolate.run(() {
+    monero.Wallet_store(Pointer.fromAddress(addr));
+  });
 }
 
 void setPasswordSync(String password) {

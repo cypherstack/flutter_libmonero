@@ -30,5 +30,5 @@ popd
 unxz -f ../monero_c/release/monero/host-apple-darwin_libwallet2_api_c.dylib.xz
 unxz -f ../monero_c/release/wownero/host-apple-darwin_libwallet2_api_c.dylib.xz
 
-ln -s ../monero_c/release/monero/aarch64-linux-android_libwallet2_api_c.dylib ../../../../macos/monero_wallet2_api_c.dylib || true
-ln -s ../monero_c/release/wownero/aarch64-linux-android_libwallet2_api_c.dylib ../../../../macos/wownero_wallet2_api_c.dylib || true
+ln -s $(realpath ../monero_c/release/monero/host-apple-darwin_libwallet2_api_c.dylib) ../../../../macos/monero_libwallet2_api_c.dylib || true
+ln -s $(realpath ../monero_c/release/wownero/host-apple-darwin_libwallet2_api_c.dylib) ../../../../macos/wownero_libwallet2_api_c.dylib || true

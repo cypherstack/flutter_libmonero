@@ -11,7 +11,7 @@ if [ ! -f "$VERSIONS_FILE" ]; then
 fi
 COMMIT=$(git log -1 --pretty=format:"%H")
 OS="IOS"
-sed -i '' "/\/\*${OS}_VERSION/c\\/\*${OS}_VERSION\*\/ const ${OS}_VERSION = \"$COMMIT\";" $VERSIONS_FILE
+sed -i '' "s/const ${OS}_VERSION = .*/const ${OS}_VERSION = \"$COMMIT\";/g" $VERSIONS_FILE
 
 cd "$(dirname "$0")"
 

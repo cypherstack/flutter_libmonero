@@ -99,27 +99,17 @@ Future<bool> setupNodeFuture(
   // monero.Wallet_init(wptr!, daemonAddress: '');
   print("init: $address");
   final waddr = wptr!.address;
-  final address_ = address.toNativeUtf8().address;
-  final username_ = (login ?? '').toNativeUtf8().address;
-  final password_ = (password ?? '').toNativeUtf8().address;
-  final socksProxyAddress_ = (socksProxyAddress ?? '').toNativeUtf8().address;
-  await Isolate.run(() async {
-    monero.lib ??= monero_gen.MoneroC(DynamicLibrary.open(monero.libPath));
-    monero.lib!.MONERO_Wallet_init(
+  await Isolate.run(() {
+    monero.Wallet_init(
       Pointer.fromAddress(waddr),
-      Pointer.fromAddress(address_).cast(),
-      0,
-      Pointer.fromAddress(username_).cast(),
-      Pointer.fromAddress(password_).cast(),
-      useSSL,
-      isLightWallet,
-      Pointer.fromAddress(socksProxyAddress_).cast(),
+      daemonAddress: address,
+      daemonUsername: login ?? '',
+      daemonPassword: password ?? '',
+      proxyAddress: socksProxyAddress ?? '',
+      useSsl: useSSL,
+      lightWallet: isLightWallet,
     );
   });
-  calloc.free(Pointer.fromAddress(address_));
-  calloc.free(Pointer.fromAddress(username_));
-  calloc.free(Pointer.fromAddress(password_));
-  calloc.free(Pointer.fromAddress(socksProxyAddress_));
   int status = monero.Wallet_status(wptr!);
   if (status != 0) {
     final err = monero.Wallet_errorString(wptr!);

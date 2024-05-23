@@ -19,7 +19,7 @@ abstract class FS {
   static void setApplicationRootDirectoryFunction(
     Future<Directory> Function() func,
   ) {
-    if (_applicationRootDirectory != null) {
+    if (_applicationRootDirectory == null) {
       _applicationRootDirectory = func;
     } else {
       throw Exception("FS.applicationRootDirectory function already set!");

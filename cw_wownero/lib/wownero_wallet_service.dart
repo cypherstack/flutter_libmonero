@@ -73,10 +73,11 @@ class WowneroWalletService extends WalletService<
       final path =
           await pathForWallet(name: credentials.name!, type: getType());
       await wownero_wallet_manager.createWallet(
-          path: path,
-          password: credentials.password,
-          language: credentials.language,
-          seedWordsLength: seedWordsLength);
+        path: path,
+        password: credentials.password!,
+        language: credentials.language ??
+            "English", /*seedWordsLength: seedWordsLength*/
+      );
       final wallet = WowneroWallet(walletInfo: credentials.walletInfo!);
       await wallet.init();
 
@@ -162,12 +163,12 @@ class WowneroWalletService extends WalletService<
           await pathForWallet(name: credentials.name!, type: getType());
       await wownero_wallet_manager.restoreFromKeys(
           path: path,
-          password: credentials.password,
-          language: credentials.language,
-          restoreHeight: credentials.height,
-          address: credentials.address,
-          viewKey: credentials.viewKey,
-          spendKey: credentials.spendKey);
+          password: credentials.password!,
+          language: credentials.language ?? "English",
+          restoreHeight: credentials.height ?? 0,
+          address: credentials.address!,
+          viewKey: credentials.viewKey!,
+          spendKey: credentials.spendKey!);
       final wallet = WowneroWallet(walletInfo: credentials.walletInfo!);
       wallet.walletInfo.isRecovery = true;
       await wallet.init();
@@ -188,14 +189,14 @@ class WowneroWalletService extends WalletService<
           await pathForWallet(name: credentials.name!, type: getType());
       await wownero_wallet_manager.restoreFromSeed(
           path: path,
-          password: credentials.password,
-          seed: credentials.mnemonic,
-          restoreHeight: credentials.height);
+          password: credentials.password!,
+          seed: credentials.mnemonic!,
+          restoreHeight: credentials.height ?? 0);
       final wallet = WowneroWallet(walletInfo: credentials.walletInfo!);
       wallet.walletInfo.isRecovery = true;
 
-      String seedString = credentials.mnemonic ?? '';
-      int seedWordsLength = seedString.split(' ').length;
+      final String seedString = credentials.mnemonic ?? '';
+      final int seedWordsLength = seedString.split(' ').length;
       if (seedWordsLength == 14) {
         wallet.walletInfo.restoreHeight =
             wallet.getSeedHeight(credentials.mnemonic!);

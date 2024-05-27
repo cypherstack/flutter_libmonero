@@ -1,282 +1,203 @@
 import 'dart:async';
 import 'dart:ffi';
+import 'dart:isolate';
 
-import 'package:cw_wownero/api/convert_utf8_to_string.dart';
+import 'package:cw_wownero/api/account_list.dart';
 import 'package:cw_wownero/api/exceptions/setup_wallet_exception.dart';
-import 'package:cw_wownero/api/signatures.dart';
-import 'package:cw_wownero/api/structs/ut8_box.dart';
-import 'package:cw_wownero/api/types.dart';
-import 'package:cw_wownero/api/wownero_api.dart';
+import 'package:monero/wownero.dart' as wownero;
 import 'package:ffi/ffi.dart';
-import 'package:ffi/ffi.dart' as pkgffi;
-import 'package:flutter/foundation.dart';
+import 'package:monero/src/generated_bindings_wownero.g.dart' as wownero_gen;
 
-int _boolToInt(bool value) => value ? 1 : 0;
+int getSyncingHeight() {
+  // final height = wownero.WOWNERO_cw_WalletListener_height(getWlptr());
+  final h2 = wownero.Wallet_blockChainHeight(wptr!);
+  // print("height: $height / $h2");
+  return h2;
+}
 
-final getFileNameNative = wowneroApi
-    .lookup<NativeFunction<get_filename>>('get_filename')
-    .asFunction<GetFilename>();
-
-final getSeedNative =
-    wowneroApi.lookup<NativeFunction<get_seed>>('seed').asFunction<GetSeed>();
-
-final getAddressNative = wowneroApi
-    .lookup<NativeFunction<get_address>>('get_address')
-    .asFunction<GetAddress>();
-
-final getFullBalanceNative = wowneroApi
-    .lookup<NativeFunction<get_full_balanace>>('get_full_balance')
-    .asFunction<GetFullBalance>();
-
-final getUnlockedBalanceNative = wowneroApi
-    .lookup<NativeFunction<get_unlocked_balanace>>('get_unlocked_balance')
-    .asFunction<GetUnlockedBalance>();
-
-final getCurrentHeightNative = wowneroApi
-    .lookup<NativeFunction<get_current_height>>('get_current_height')
-    .asFunction<GetCurrentHeight>();
-
-final getNodeHeightNative = wowneroApi
-    .lookup<NativeFunction<get_node_height>>('get_node_height')
-    .asFunction<GetNodeHeight>();
-
-final getSeedHeightNative = wowneroApi
-    .lookup<NativeFunction<get_seed_height>>('get_seed_height')
-    .asFunction<GetSeedHeight>();
-
-final isConnectedNative = wowneroApi
-    .lookup<NativeFunction<is_connected>>('is_connected')
-    .asFunction<IsConnected>();
-
-final setupNodeNative = wowneroApi
-    .lookup<NativeFunction<setup_node>>('setup_node')
-    .asFunction<SetupNode>();
-
-final startRefreshNative = wowneroApi
-    .lookup<NativeFunction<start_refresh>>('start_refresh')
-    .asFunction<StartRefresh>();
-
-final connecToNodeNative = wowneroApi
-    .lookup<NativeFunction<connect_to_node>>('connect_to_node')
-    .asFunction<ConnectToNode>();
-
-final setRefreshFromBlockHeightNative = wowneroApi
-    .lookup<NativeFunction<set_refresh_from_block_height>>(
-        'set_refresh_from_block_height')
-    .asFunction<SetRefreshFromBlockHeight>();
-
-final setRecoveringFromSeedNative = wowneroApi
-    .lookup<NativeFunction<set_recovering_from_seed>>(
-        'set_recovering_from_seed')
-    .asFunction<SetRecoveringFromSeed>();
-
-final storeNative =
-    wowneroApi.lookup<NativeFunction<store_c>>('store').asFunction<Store>();
-
-final setPasswordNative = wowneroApi
-    .lookup<NativeFunction<set_password>>('set_password')
-    .asFunction<SetPassword>();
-
-final setListenerNative = wowneroApi
-    .lookup<NativeFunction<set_listener>>('set_listener')
-    .asFunction<SetListener>();
-
-final getSyncingHeightNative = wowneroApi
-    .lookup<NativeFunction<get_syncing_height>>('get_syncing_height')
-    .asFunction<GetSyncingHeight>();
-
-final isNeededToRefreshNative = wowneroApi
-    .lookup<NativeFunction<is_needed_to_refresh>>('is_needed_to_refresh')
-    .asFunction<IsNeededToRefresh>();
-
-final isNewTransactionExistNative = wowneroApi
-    .lookup<NativeFunction<is_new_transaction_exist>>(
-        'is_new_transaction_exist')
-    .asFunction<IsNewTransactionExist>();
-
-final getSecretViewKeyNative = wowneroApi
-    .lookup<NativeFunction<secret_view_key>>('secret_view_key')
-    .asFunction<SecretViewKey>();
-
-final getPublicViewKeyNative = wowneroApi
-    .lookup<NativeFunction<public_view_key>>('public_view_key')
-    .asFunction<PublicViewKey>();
-
-final getSecretSpendKeyNative = wowneroApi
-    .lookup<NativeFunction<secret_spend_key>>('secret_spend_key')
-    .asFunction<SecretSpendKey>();
-
-final getPublicSpendKeyNative = wowneroApi
-    .lookup<NativeFunction<secret_view_key>>('public_spend_key')
-    .asFunction<PublicSpendKey>();
-
-final closeCurrentWalletNative = wowneroApi
-    .lookup<NativeFunction<close_current_wallet>>('close_current_wallet')
-    .asFunction<CloseCurrentWallet>();
-
-final onStartupNative = wowneroApi
-    .lookup<NativeFunction<on_startup>>('on_startup')
-    .asFunction<OnStartup>();
-
-final rescanBlockchainAsyncNative = wowneroApi
-    .lookup<NativeFunction<rescan_blockchain>>('rescan_blockchain')
-    .asFunction<RescanBlockchainAsync>();
-
-final getSubaddressLabelNative = wowneroApi
-    .lookup<NativeFunction<get_subaddress_label>>('get_subaddress_label')
-    .asFunction<GetSubaddressLabel>();
-
-final setTrustedDaemonNative = wowneroApi
-    .lookup<NativeFunction<set_trusted_daemon>>('set_trusted_daemon')
-    .asFunction<SetTrustedDaemon>();
-
-final trustedDaemonNative = wowneroApi
-    .lookup<NativeFunction<trusted_daemon>>('trusted_daemon')
-    .asFunction<TrustedDaemon>();
-
-final validateAddressNative = wowneroApi
-    .lookup<NativeFunction<validate_address>>('validate_address')
-    .asFunction<ValidateAddress>();
-
-int getSyncingHeight() => getSyncingHeightNative();
-
-bool isNeededToRefresh() => isNeededToRefreshNative() != 0;
-
-bool isNewTransactionExist() => isNewTransactionExistNative() != 0;
-
-String getFilename() => convertUTF8ToString(pointer: getFileNameNative());
-
-String getSeed() => convertUTF8ToString(pointer: getSeedNative());
-
-String getAddress({int accountIndex = 0, int addressIndex = 0}) =>
-    convertUTF8ToString(pointer: getAddressNative(accountIndex, addressIndex));
-
-int getFullBalance({int? accountIndex = 0}) =>
-    getFullBalanceNative(accountIndex);
-
-int getUnlockedBalance({int? accountIndex = 0}) =>
-    getUnlockedBalanceNative(accountIndex);
-
-int getCurrentHeight() => getCurrentHeightNative();
-
-int getNodeHeightSync() => getNodeHeightNative();
-
-int getSeedHeightSync(String seed) {
-  final seedPointer = seed.toNativeUtf8();
-  final ret = getSeedHeightNative(seedPointer);
-  pkgffi.calloc.free(seedPointer);
+bool isNeededToRefresh() {
+  final ret = wownero.WOWNERO_cw_WalletListener_isNeedToRefresh(getWlptr());
+  wownero.WOWNERO_cw_WalletListener_resetNeedToRefresh(getWlptr());
   return ret;
 }
 
-bool isConnectedSync() => isConnectedNative() != 0;
+bool isNewTransactionExist() {
+  final ret =
+      wownero.WOWNERO_cw_WalletListener_isNewTransactionExist(getWlptr());
+  wownero.WOWNERO_cw_WalletListener_resetIsNewTransactionExist(getWlptr());
+  return ret;
+}
 
-bool setupNodeSync(
+String getFilename() => wownero.Wallet_filename(wptr!);
+
+String getSeed() {
+  // wownero.Wallet_setCacheAttribute(wptr!, key: "cakewallet.seed", value: seed);
+  final cakepolyseed =
+      wownero.Wallet_getCacheAttribute(wptr!, key: "cakewallet.seed");
+  if (cakepolyseed != "") {
+    return cakepolyseed;
+  }
+  final polyseed = wownero.Wallet_getPolyseed(wptr!, passphrase: '');
+  if (polyseed != "") {
+    return polyseed;
+  }
+  final legacy = wownero.Wallet_seed(wptr!, seedOffset: '');
+  return legacy;
+}
+
+String getAddress({int accountIndex = 0, int addressIndex = 1}) =>
+    wownero.Wallet_address(wptr!,
+        accountIndex: accountIndex, addressIndex: addressIndex);
+
+bool addressValid(String address) => wownero.Wallet_addressValid(address, 0);
+
+int getFullBalance({int accountIndex = 0}) =>
+    wownero.Wallet_balance(wptr!, accountIndex: accountIndex);
+
+int getUnlockedBalance({int accountIndex = 0}) =>
+    wownero.Wallet_unlockedBalance(wptr!, accountIndex: accountIndex);
+
+int getCurrentHeight() => wownero.Wallet_blockChainHeight(wptr!);
+
+int getNodeHeightSync() => wownero.Wallet_daemonBlockChainHeight(wptr!);
+
+bool isRefreshPending = false;
+bool connected = false;
+
+bool isConnectedSync() {
+  if (isRefreshPending) return connected;
+  isRefreshPending = true;
+  final addr = wptr!.address;
+  Isolate.run(() {
+    wownero.lib ??= wownero_gen.WowneroC(DynamicLibrary.open(wownero.libPath));
+    return wownero.lib!.WOWNERO_Wallet_connected(Pointer.fromAddress(addr));
+  }).then((value) {
+    connected = value == 1;
+    isRefreshPending = false;
+  });
+  return connected;
+}
+
+Future<bool> setupNodeFuture(
     {required String address,
     String? login,
     String? password,
     bool useSSL = false,
-    bool isLightWallet = false}) {
-  print("SetupNodeSync begin");
-  final addressPointer = address.toNativeUtf8();
-  Pointer<Utf8>? loginPointer;
-  Pointer<Utf8>? passwordPointer;
+    bool isLightWallet = false,
+    String? socksProxyAddress}) async {
+  print('''
+{
+  wptr!,
+  daemonAddress: $address,
+  useSsl: $useSSL,
+  proxyAddress: $socksProxyAddress ?? '',
+  daemonUsername: $login ?? '',
+  daemonPassword: $password ?? ''
+}
+''');
 
-  if (login != null) {
-    loginPointer = login.toNativeUtf8();
+  // Load the wallet as "offline" first
+  // the reason being - wallet not initialized errors. we don't want crashes in here (or empty responses from functions).
+  // wownero.Wallet_init(wptr!, daemonAddress: '');
+  print("init: $address");
+  final waddr = wptr!.address;
+  final address_ = address.toNativeUtf8().address;
+  final username_ = (login ?? '').toNativeUtf8().address;
+  final password_ = (password ?? '').toNativeUtf8().address;
+  final socksProxyAddress_ = (socksProxyAddress ?? '').toNativeUtf8().address;
+  await Isolate.run(() async {
+    wownero.lib ??= wownero_gen.WowneroC(DynamicLibrary.open(wownero.libPath));
+    wownero.lib!.WOWNERO_Wallet_init(
+      Pointer.fromAddress(waddr),
+      Pointer.fromAddress(address_).cast(),
+      0,
+      Pointer.fromAddress(username_).cast(),
+      Pointer.fromAddress(password_).cast(),
+      useSSL,
+      isLightWallet,
+      Pointer.fromAddress(socksProxyAddress_).cast(),
+    );
+  });
+  calloc.free(Pointer.fromAddress(address_));
+  calloc.free(Pointer.fromAddress(username_));
+  calloc.free(Pointer.fromAddress(password_));
+  calloc.free(Pointer.fromAddress(socksProxyAddress_));
+  final status = wownero.Wallet_status(wptr!);
+  if (status != 0) {
+    final err = wownero.Wallet_errorString(wptr!);
+    print("init: $status");
+    print("init: $err");
+    throw SetupWalletException(message: err);
   }
+  wownero.Wallet_init3(wptr!,
+      argv0: "stack_wallet",
+      defaultLogBaseName: "",
+      logPath: "/dev/shm/wow.log",
+      console: true);
 
-  if (password != null) {
-    passwordPointer = password.toNativeUtf8();
-  }
-
-  final errorMessagePointer =
-      pkgffi.calloc.allocate<Utf8>(sizeOf<Pointer<Utf8>>());
-  final isSetupNode = setupNodeNative(
-          addressPointer,
-          loginPointer!,
-          passwordPointer!,
-          _boolToInt(useSSL),
-          _boolToInt(isLightWallet),
-          errorMessagePointer) !=
-      0;
-
-  pkgffi.calloc.free(addressPointer);
-  pkgffi.calloc.free(loginPointer);
-  pkgffi.calloc.free(passwordPointer);
-
-  if (!isSetupNode) {
-    throw SetupWalletException(
-        message: convertUTF8ToString(pointer: errorMessagePointer));
-  }
-  print("setup nodesync end");
-
-  return isSetupNode;
+  return status == 0;
 }
 
-void startRefreshSync() => startRefreshNative();
+void startRefreshSync() {
+  wownero.Wallet_refreshAsync(wptr!);
+  wownero.Wallet_startRefresh(wptr!);
+}
 
-Future<bool> connectToNode() async => connecToNodeNative() != 0;
+Future<bool> connectToNode() async {
+  return true;
+}
 
-void setRefreshFromBlockHeight({int? height = 0}) =>
-    setRefreshFromBlockHeightNative(height ?? 0);
+void setRefreshFromBlockHeight({required int height}) =>
+    wownero.Wallet_setRefreshFromBlockHeight(wptr!,
+        refresh_from_block_height: height);
 
 void setRecoveringFromSeed({required bool isRecovery}) =>
-    setRecoveringFromSeedNative(_boolToInt(isRecovery));
+    wownero.Wallet_setRecoveringFromSeed(wptr!, recoveringFromSeed: isRecovery);
 
 void storeSync() {
-  final pathPointer = ''.toNativeUtf8();
-  storeNative(pathPointer);
-  pkgffi.calloc.free(pathPointer);
+  final addr = wptr!.address;
+  Isolate.run(() {
+    wownero.Wallet_store(Pointer.fromAddress(addr));
+  });
 }
 
 void setPasswordSync(String password) {
-  final passwordPointer = password.toNativeUtf8();
-  final errorMessagePointer =
-      pkgffi.calloc.allocate<Utf8Box>(sizeOf<Utf8Box>());
-  // final errorMessagePointer = allocate<Utf8Box>();
-  final changed = setPasswordNative(passwordPointer, errorMessagePointer) != 0;
-  pkgffi.calloc.free(passwordPointer);
+  wownero.Wallet_setPassword(wptr!, password: password);
 
-  if (!changed) {
-    final message = errorMessagePointer.ref.getValue();
-    pkgffi.calloc.free(errorMessagePointer);
-    throw Exception(message);
+  final status = wownero.Wallet_status(wptr!);
+  if (status == 0) {
+    throw Exception(wownero.Wallet_errorString(wptr!));
   }
-
-  pkgffi.calloc.free(errorMessagePointer);
 }
 
-void closeCurrentWallet() => closeCurrentWalletNative();
+void closeCurrentWallet() {
+  wownero.Wallet_stop(wptr!);
+}
 
-String getSecretViewKey() =>
-    convertUTF8ToString(pointer: getSecretViewKeyNative());
+String getSecretViewKey() => wownero.Wallet_secretViewKey(wptr!);
 
-String getPublicViewKey() =>
-    convertUTF8ToString(pointer: getPublicViewKeyNative());
+String getPublicViewKey() => wownero.Wallet_publicViewKey(wptr!);
 
-String getSecretSpendKey() =>
-    convertUTF8ToString(pointer: getSecretSpendKeyNative());
+String getSecretSpendKey() => wownero.Wallet_secretSpendKey(wptr!);
 
-String getPublicSpendKey() =>
-    convertUTF8ToString(pointer: getPublicSpendKeyNative());
+String getPublicSpendKey() => wownero.Wallet_publicSpendKey(wptr!);
 
 class SyncListener {
-  SyncListener(this.onNewBlock, this.onNewTransaction) {
-    _cachedBlockchainHeight = 0;
-    _lastKnownBlockHeight = 0;
-    _initialSyncHeight = 0;
-  }
+  SyncListener(this.onNewBlock, this.onNewTransaction)
+      : _cachedBlockchainHeight = 0,
+        _lastKnownBlockHeight = 0,
+        _initialSyncHeight = 0;
 
   void Function(int, int, double) onNewBlock;
   void Function() onNewTransaction;
 
   Timer? _updateSyncInfoTimer;
-  int? _cachedBlockchainHeight;
-  int? _lastKnownBlockHeight;
-  late int _initialSyncHeight;
+  int _cachedBlockchainHeight;
+  int _lastKnownBlockHeight;
+  int _initialSyncHeight;
 
-  Future<int?> getNodeHeightOrUpdate(int baseHeight) async {
-    if (_cachedBlockchainHeight! < baseHeight || _cachedBlockchainHeight == 0) {
+  Future<int> getNodeHeightOrUpdate(int baseHeight) async {
+    if (_cachedBlockchainHeight < baseHeight || _cachedBlockchainHeight == 0) {
       _cachedBlockchainHeight = await getNodeHeight();
     }
 
@@ -290,7 +211,7 @@ class SyncListener {
     _updateSyncInfoTimer ??=
         Timer.periodic(Duration(milliseconds: 1200), (_) async {
       if (isNewTransactionExist()) {
-        onNewTransaction.call();
+        onNewTransaction();
       }
 
       var syncHeight = getSyncingHeight();
@@ -305,12 +226,12 @@ class SyncListener {
 
       final bchHeight = await getNodeHeightOrUpdate(syncHeight);
 
-      if (_lastKnownBlockHeight == syncHeight || syncHeight == null) {
+      if (_lastKnownBlockHeight == syncHeight) {
         return;
       }
 
       _lastKnownBlockHeight = syncHeight;
-      final track = bchHeight! - _initialSyncHeight;
+      final track = bchHeight - _initialSyncHeight;
       final diff = track - (bchHeight - syncHeight);
       final ptc = diff <= 0 ? 0.0 : diff / track;
       final left = bchHeight - syncHeight;
@@ -330,27 +251,29 @@ class SyncListener {
 SyncListener setListeners(void Function(int, int, double) onNewBlock,
     void Function() onNewTransaction) {
   final listener = SyncListener(onNewBlock, onNewTransaction);
-  setListenerNative();
+  // setListenerNative();
   return listener;
 }
 
-void onStartup() => onStartupNative();
+void onStartup() {}
 
 void _storeSync(Object _) => storeSync();
 
-bool _setupNodeSync(Map args) {
+Future<bool> _setupNode(Map<String, Object?> args) async {
   final address = args['address'] as String;
   final login = (args['login'] ?? '') as String;
   final password = (args['password'] ?? '') as String;
   final useSSL = args['useSSL'] as bool;
   final isLightWallet = args['isLightWallet'] as bool;
+  final socksProxyAddress = (args['socksProxyAddress'] ?? '') as String;
 
-  return setupNodeSync(
+  return setupNodeFuture(
       address: address,
       login: login,
       password: password,
       useSSL: useSSL,
-      isLightWallet: isLightWallet);
+      isLightWallet: isLightWallet,
+      socksProxyAddress: socksProxyAddress);
 }
 
 bool _isConnected(Object _) => isConnectedSync();
@@ -359,64 +282,40 @@ int _getNodeHeight(Object _) => getNodeHeightSync();
 
 void startRefresh() => startRefreshSync();
 
-Future setupNode(
-        {String? address,
+Future<void> setupNode(
+        {required String address,
         String? login,
         String? password,
         bool useSSL = false,
-        bool isLightWallet = false}) =>
-    compute<Map<String, Object?>, void>(_setupNodeSync, {
+        String? socksProxyAddress,
+        bool isLightWallet = false}) async =>
+    await _setupNode({
       'address': address,
       'login': login,
       'password': password,
       'useSSL': useSSL,
-      'isLightWallet': isLightWallet
+      'isLightWallet': isLightWallet,
+      'socksProxyAddress': socksProxyAddress
     });
 
-int storeTime = 0;
-bool priorityInQueue = false;
+Future<void> store() async => _storeSync(0);
 
-Future<bool> store({bool prioritySave = false}) async {
-  if (priorityInQueue) {
-    return false;
-  }
-  print(
-      "${DateTime.now().millisecondsSinceEpoch} $prioritySave $priorityInQueue");
-  if (DateTime.now().millisecondsSinceEpoch < storeTime + 90000 &&
-      prioritySave) {
-    priorityInQueue = true;
-    await Future.delayed(Duration(seconds: 1));
-    priorityInQueue = false;
-    return store(prioritySave: prioritySave);
-  } else if (DateTime.now().millisecondsSinceEpoch < storeTime + 90000 &&
-      !prioritySave) {
-    return false;
-  }
-  print("released $storeTime");
-  storeTime = DateTime.now().millisecondsSinceEpoch;
-  await compute<int, void>(_storeSync, 0);
-  return true;
-}
+Future<bool> isConnected() async => _isConnected(0);
 
-Future<bool> isConnected() => compute(_isConnected, 0);
+Future<int> getNodeHeight() async => _getNodeHeight(0);
 
-Future<int> getNodeHeight() => compute(_getNodeHeight, 0);
-
-void rescanBlockchainAsync() => rescanBlockchainAsyncNative();
+void rescanBlockchainAsync() => wownero.Wallet_rescanBlockchainAsync(wptr!);
 
 String getSubaddressLabel(int accountIndex, int addressIndex) {
-  return convertUTF8ToString(
-      pointer: getSubaddressLabelNative(accountIndex, addressIndex));
+  return wownero.Wallet_getSubaddressLabel(wptr!,
+      accountIndex: accountIndex, addressIndex: addressIndex);
 }
 
 Future setTrustedDaemon(bool trusted) async =>
-    setTrustedDaemonNative(_boolToInt(trusted));
+    wownero.Wallet_setTrustedDaemon(wptr!, arg: trusted);
 
-Future<bool> trustedDaemon() async => trustedDaemonNative() != 0;
+Future<bool> trustedDaemon() async => wownero.Wallet_trustedDaemon(wptr!);
 
-bool validateAddress(String address) {
-  final addressPointer = address.toNativeUtf8();
-  final valid = validateAddressNative(addressPointer) != 0;
-  pkgffi.calloc.free(addressPointer);
-  return valid;
+String signMessage(String message, {String address = ""}) {
+  return wownero.Wallet_signMessage(wptr!, message: message, address: address);
 }

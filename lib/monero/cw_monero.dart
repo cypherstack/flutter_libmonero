@@ -38,15 +38,15 @@ class CWMoneroAccountList extends MoneroAccountList {
   @override
   Future<void> addAccount(Object wallet, {String? label}) async {
     final moneroWallet = wallet as MoneroWallet;
-    moneroWallet.walletAddresses.accountList.addAccount(label: label);
+    await moneroWallet.walletAddresses.accountList.addAccount(label: label??"");
   }
 
   @override
   Future<void> setLabelAccount(Object wallet,
       {int? accountIndex, String? label}) async {
     final moneroWallet = wallet as MoneroWallet;
-    moneroWallet.walletAddresses.accountList
-        .setLabelAccount(accountIndex: accountIndex, label: label);
+    await moneroWallet.walletAddresses.accountList
+        .setLabelAccount(accountIndex: accountIndex??0, label: label??"");
   }
 }
 
@@ -77,7 +77,7 @@ class CWMoneroSubaddressList extends MoneroSubaddressList {
   void refresh(Object wallet, {int? accountIndex}) {
     final moneroWallet = wallet as MoneroWallet;
     moneroWallet.walletAddresses.subaddressList
-        .refresh(accountIndex: accountIndex);
+        .refresh(accountIndex: accountIndex??0);
   }
 
   @override
@@ -94,16 +94,16 @@ class CWMoneroSubaddressList extends MoneroSubaddressList {
   Future<void> addSubaddress(Object wallet,
       {int? accountIndex, String? label}) async {
     final moneroWallet = wallet as MoneroWallet;
-    moneroWallet.walletAddresses.subaddressList
-        .addSubaddress(accountIndex: accountIndex, label: label);
+    await moneroWallet.walletAddresses.subaddressList
+        .addSubaddress(accountIndex: accountIndex??0, label: label??"");
   }
 
   @override
   Future<void> setLabelSubaddress(Object wallet,
       {int? accountIndex, int? addressIndex, String? label}) async {
     final moneroWallet = wallet as MoneroWallet;
-    moneroWallet.walletAddresses.subaddressList.setLabelSubaddress(
-        accountIndex: accountIndex, addressIndex: addressIndex, label: label);
+    await moneroWallet.walletAddresses.subaddressList.setLabelSubaddress(
+        accountIndex: accountIndex??0, addressIndex: addressIndex??0, label: label??"");
   }
 }
 
@@ -225,7 +225,7 @@ class CWMonero extends Monero {
   WalletCredentials createMoneroNewWalletCredentials(
       {String? name, String? password, String? language}) {
     return MoneroNewWalletCredentials(
-        name: name, password: password, language: language);
+        name: name??"", password: password??"", language: language);
   }
 
   Map<String, String?> getKeys(Object wallet) {

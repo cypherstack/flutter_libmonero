@@ -25,14 +25,14 @@ else
   ARCH_PATH=$TARGET
 
   if [ -f "$TARGET_PATH/$MONERO_BIN" -a -f "$TARGET_PATH/$WOWNERO_BIN" ]; then
-    git checkout "${OS}_${TARGET}_${TAG_COMMIT}" || git checkout -b "${OS}_${TARGET}_${TAG_COMMIT}"
+    git checkout $OS/$TARGET || git checkout -b $OS/$TARGET
     if [ ! -d "$OS/$ARCH_PATH" ]; then
       mkdir -p "$OS/$ARCH_PATH"
     fi
     cp -rf "$TARGET_PATH/$MONERO_BIN" "$OS/$ARCH_PATH/$MONERO_BIN"
     cp -rf "$TARGET_PATH/$WOWNERO_BIN" "$OS/$ARCH_PATH/$WOWNERO_BIN"
     git add .
-      git push origin $OS/$TARGET
+    git commit -m "$TAG_COMMIT"
     git push origin $OS/$TARGET
     git tag "${OS}_${TARGET}_${TAG_COMMIT}"
     git push --tags

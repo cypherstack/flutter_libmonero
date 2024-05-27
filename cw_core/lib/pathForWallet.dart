@@ -3,9 +3,35 @@ import 'dart:io';
 import 'package:cw_core/wallet_type.dart';
 import 'package:path_provider/path_provider.dart';
 
-Future<String> pathForWalletDir(
-    {required String name, required WalletType type}) async {
-  Directory root = await applicationRootDirectory();
+abstract class FS {
+  static Future<Directory> Function()? _applicationRootDirectory;
+  static Future<Directory> Function() get applicationRootDirectory {
+    if (_applicationRootDirectory == null) {
+      throw Exception(
+        "FS.setApplicationRootDirectoryFunction must be called on startup by "
+        "any applications that uses this library!",
+      );
+    } else {
+      return _applicationRootDirectory!;
+    }
+  }
+
+  static void setApplicationRootDirectoryFunction(
+    Future<Directory> Function() func,
+  ) {
+    if (_applicationRootDirectory == null) {
+      _applicationRootDirectory = func;
+    } else {
+      throw Exception("FS.applicationRootDirectory function already set!");
+    }
+  }
+}
+
+Future<String> pathForWalletDir({
+  required String name,
+  required WalletType type,
+}) async {
+  final Directory root = await FS.applicationRootDirectory();
 
   final prefix = walletTypeToString(type).toLowerCase();
   final walletsDir = Directory('${root.path}/wallets');
@@ -18,55 +44,24 @@ Future<String> pathForWalletDir(
   return walletDire.path;
 }
 
-Future<String> pathForWallet(
-        {required String name, required WalletType type}) async =>
+Future<String> pathForWallet({
+  required String name,
+  required WalletType type,
+}) async =>
     await pathForWalletDir(name: name, type: type)
         .then((path) => path + '/$name');
 
 Future<String> outdatedAndroidPathForWalletDir({String? name}) async {
-  Directory directory = await applicationRootDirectory();
+  final Directory directory = await FS.applicationRootDirectory();
 
   final pathDir = directory.path + '/$name';
 
   return pathDir;
 }
 
-Future<Directory> applicationRootDirectory() async {
-  Directory appDirectory;
-
-// todo: can merge and do same as regular linux home dir?
-  if (bool.fromEnvironment("IS_ARM")) {
-    appDirectory = await getApplicationDocumentsDirectory();
-    appDirectory = Directory("${appDirectory.path}/.stackwallet");
-  } else if (Platform.isLinux) {
-    appDirectory = Directory("${Platform.environment['HOME']}/.stackwallet");
-  } else if (Platform.isWindows) {
-// TODO: windows root .stackwallet dir location
-    throw Exception("Unsupported platform");
-  } else if (Platform.isMacOS) {
-    appDirectory = await getLibraryDirectory();
-    appDirectory = Directory("${appDirectory.path}/stackwallet");
-  } else if (Platform.isIOS) {
-// todo: check if we need different behaviour here
-    if (await isDesktop()) {
-      appDirectory = await getLibraryDirectory();
-    } else {
-      appDirectory = await getLibraryDirectory();
-    }
-  } else if (Platform.isAndroid) {
-    appDirectory = await getApplicationDocumentsDirectory();
-  } else {
-    throw Exception("Unsupported platform");
-  }
-  if (!appDirectory.existsSync()) {
-    await appDirectory.create(recursive: true);
-  }
-  return appDirectory;
-}
-
 Future<bool> isDesktop() async {
   if (Platform.isIOS) {
-    Directory libraryPath = await getLibraryDirectory();
+    final Directory libraryPath = await getLibraryDirectory();
     if (!libraryPath.path.contains("/var/mobile/")) {
       return true;
     }

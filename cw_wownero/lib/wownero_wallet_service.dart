@@ -11,6 +11,7 @@ import 'package:cw_core/wallet_type.dart';
 import 'package:cw_wownero/api/exceptions/wallet_opening_exception.dart';
 import 'package:cw_wownero/api/wallet_manager.dart' as wownero_wallet_manager;
 import 'package:cw_wownero/wownero_wallet.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 
 class WowneroNewWalletCredentials extends WalletCredentials {
@@ -84,7 +85,7 @@ class WowneroWalletService extends WalletService<
       return wallet;
     } catch (e) {
       // TODO: Implement Exception for wallet list service.
-      print('WowneroWalletsManager Error: ${e.toString()}');
+      if (kDebugMode) print('WowneroWalletsManager Error: ${e.toString()}');
       rethrow;
     }
   }
@@ -96,7 +97,7 @@ class WowneroWalletService extends WalletService<
       return wownero_wallet_manager.isWalletExist(path: path);
     } catch (e) {
       // TODO: Implement Exception for wallet list service.
-      print('WowneroWalletsManager Error: $e');
+      if (kDebugMode) print('WowneroWalletsManager Error: $e');
       rethrow;
     }
   }

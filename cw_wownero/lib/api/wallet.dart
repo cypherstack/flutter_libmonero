@@ -4,14 +4,15 @@ import 'dart:isolate';
 
 import 'package:cw_wownero/api/account_list.dart';
 import 'package:cw_wownero/api/exceptions/setup_wallet_exception.dart';
-import 'package:monero/wownero.dart' as wownero;
 import 'package:ffi/ffi.dart';
+import 'package:flutter/foundation.dart';
 import 'package:monero/src/generated_bindings_wownero.g.dart' as wownero_gen;
+import 'package:monero/wownero.dart' as wownero;
 
 int getSyncingHeight() {
   // final height = wownero.WOWNERO_cw_WalletListener_height(getWlptr());
   final h2 = wownero.Wallet_blockChainHeight(wptr!);
-  // print("height: $height / $h2");
+  // if (kDebugMode) print("height: $height / $h2");
   return h2;
 }
 
@@ -85,21 +86,21 @@ Future<bool> setupNodeFuture(
     bool useSSL = false,
     bool isLightWallet = false,
     String? socksProxyAddress}) async {
-  print('''
-{
-  wptr!,
-  daemonAddress: $address,
-  useSsl: $useSSL,
-  proxyAddress: $socksProxyAddress ?? '',
-  daemonUsername: $login ?? '',
-  daemonPassword: $password ?? ''
-}
-''');
+//   if (kDebugMode) print('''
+// {
+//   wptr!,
+//   daemonAddress: $address,
+//   useSsl: $useSSL,
+//   proxyAddress: $socksProxyAddress ?? '',
+//   daemonUsername: $login ?? '',
+//   daemonPassword: $password ?? ''
+// }
+// ''');
 
   // Load the wallet as "offline" first
   // the reason being - wallet not initialized errors. we don't want crashes in here (or empty responses from functions).
   // wownero.Wallet_init(wptr!, daemonAddress: '');
-  print("init: $address");
+  if (kDebugMode) print("init: $address");
   final waddr = wptr!.address;
   final address_ = address.toNativeUtf8().address;
   final username_ = (login ?? '').toNativeUtf8().address;
@@ -125,8 +126,8 @@ Future<bool> setupNodeFuture(
   final status = wownero.Wallet_status(wptr!);
   if (status != 0) {
     final err = wownero.Wallet_errorString(wptr!);
-    print("init: $status");
-    print("init: $err");
+    if (kDebugMode) print("init: $status");
+    if (kDebugMode) print("init: $err");
     throw SetupWalletException(message: err);
   }
   wownero.Wallet_init3(wptr!,

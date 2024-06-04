@@ -1,4 +1,5 @@
 import 'package:cw_core/wallet_info.dart';
+import 'package:flutter/foundation.dart';
 
 abstract class WalletAddresses {
   WalletAddresses(this.walletInfo) {
@@ -30,7 +31,7 @@ abstract class WalletAddresses {
         await walletInfo.save();
       }
     } catch (e) {
-      print(e.toString());
+      if (kDebugMode) print(e.toString());
     }
   }
 }

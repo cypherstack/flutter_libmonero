@@ -21,14 +21,15 @@ import 'package:cw_monero/api/structs/pending_transaction.dart';
 import 'package:cw_monero/api/transaction_history.dart'
     as monero_transaction_history;
 import 'package:cw_monero/api/transaction_history.dart' as transaction_history;
-import 'package:cw_monero/api/wallet.dart';
 import 'package:cw_monero/api/wallet.dart' as monero_wallet;
+import 'package:cw_monero/api/wallet.dart';
 import 'package:cw_monero/monero_transaction_creation_credentials.dart';
 import 'package:cw_monero/monero_transaction_creation_exception.dart';
 import 'package:cw_monero/monero_transaction_history.dart';
 import 'package:cw_monero/monero_transaction_info.dart';
 import 'package:cw_monero/monero_wallet_addresses.dart';
 import 'package:cw_monero/pending_monero_transaction.dart';
+import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:monero/monero.dart' as monero;
 
@@ -151,7 +152,7 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
     } catch (e) {
       syncStatus = FailedSyncStatus();
       syncStatusChanged?.call();
-      print(e);
+      if (kDebugMode) print(e);
     }
   }
 
@@ -170,7 +171,7 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
     } catch (e) {
       syncStatus = FailedSyncStatus();
       syncStatusChanged?.call();
-      print(e);
+      if (kDebugMode) print(e);
       rethrow;
     }
   }
@@ -270,7 +271,7 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
 
   @override
   Future<bool> save({bool prioritySave = false}) async {
-    print("save is called");
+    if (kDebugMode) print("save is called");
     await walletAddresses.updateAddressesInBox();
     if (!Platform.isWindows) {
       await backupWalletFiles(name: name!, type: WalletType.wownero);
@@ -339,7 +340,7 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
       await transactionHistory!.save();
       _isTransactionUpdating = false;
     } catch (e) {
-      print(e);
+      if (kDebugMode) print(e);
       _isTransactionUpdating = false;
     }
   }
@@ -458,7 +459,7 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
         syncStatusChanged?.call();
       }
     } catch (e) {
-      print(e.toString());
+      if (kDebugMode) print(e.toString());
     }
     onNewBlock?.call(height: height, blocksLeft: blocksLeft);
   }
@@ -469,7 +470,7 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
       _askForUpdateBalance();
       await Future<void>.delayed(Duration(seconds: 1));
     } catch (e) {
-      print(e.toString());
+      if (kDebugMode) print(e.toString());
     }
     onNewTransaction?.call();
   }

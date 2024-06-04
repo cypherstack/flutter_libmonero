@@ -1,6 +1,6 @@
 import 'package:cw_core/wallet_base.dart';
 import 'package:cw_core/wallet_type.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_libmonero/entities/parsed_address.dart';
 import 'package:flutter_libmonero/monero/monero.dart';
 import 'package:intl/intl.dart';
@@ -99,7 +99,7 @@ abstract class OutputBase with Store {
         return wownero.formatterWowneroAmountToDouble(amount: fee);
       }
     } catch (e) {
-      print(e.toString());
+      if (kDebugMode) print(e.toString());
     }
 
     return 0;

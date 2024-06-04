@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
 // TODO/FIXME: Hardcoded values; need to update Monero from 2020-11 on
@@ -190,7 +191,7 @@ int getMoneroHeigthByDate({required DateTime date}) {
       height = startHeight + daysHeight - heightPerDay;
     }
   } catch (e) {
-    print(e.toString());
+    if (kDebugMode) print(e.toString());
   }
 
   return height;
@@ -225,7 +226,7 @@ int getWowneroHeightByDate({required DateTime date}) {
       height = startHeight + daysHeight - heightPerDay;
     }
   } catch (e) {
-    print(e.toString());
+    if (kDebugMode) print(e.toString());
   }
 
   return height;

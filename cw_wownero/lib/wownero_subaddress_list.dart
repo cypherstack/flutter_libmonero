@@ -1,5 +1,6 @@
 import 'package:cw_core/subaddress.dart';
 import 'package:cw_wownero/api/subaddress_list.dart' as subaddress_list;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:mobx/mobx.dart';
 
@@ -66,14 +67,17 @@ abstract class WowneroSubaddressListBase with Store {
     }).toList();
   }
 
-  Future addSubaddress({required int accountIndex, required String label}) async {
+  Future addSubaddress(
+      {required int accountIndex, required String label}) async {
     await subaddress_list.addSubaddress(
         accountIndex: accountIndex, label: label);
     update(accountIndex: accountIndex);
   }
 
   Future setLabelSubaddress(
-      {required int accountIndex, required int addressIndex, required String label}) async {
+      {required int accountIndex,
+      required int addressIndex,
+      required String label}) async {
     await subaddress_list.setLabelForSubaddress(
         accountIndex: accountIndex, addressIndex: addressIndex, label: label);
     update(accountIndex: accountIndex);
@@ -90,7 +94,7 @@ abstract class WowneroSubaddressListBase with Store {
       _isRefreshing = false;
     } on PlatformException catch (e) {
       _isRefreshing = false;
-      print(e);
+      if (kDebugMode) print(e);
       rethrow;
     }
   }

@@ -1,5 +1,6 @@
 import 'package:cw_core/account.dart';
 import 'package:cw_monero/api/account_list.dart' as account_list;
+import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:monero/monero.dart' as monero;
 
@@ -57,7 +58,8 @@ abstract class MoneroAccountListBase with Store {
     update();
   }
 
-  Future setLabelAccount({required int accountIndex, required String label}) async {
+  Future setLabelAccount(
+      {required int accountIndex, required String label}) async {
     await account_list.setLabelForAccount(
         accountIndex: accountIndex, label: label);
     update();
@@ -74,7 +76,7 @@ abstract class MoneroAccountListBase with Store {
       _isRefreshing = false;
     } catch (e) {
       _isRefreshing = false;
-      print(e);
+      if (kDebugMode) print(e);
       rethrow;
     }
   }

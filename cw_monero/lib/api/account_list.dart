@@ -1,4 +1,5 @@
 import 'package:cw_monero/api/wallet.dart';
+import 'package:flutter/foundation.dart';
 import 'package:monero/monero.dart' as monero;
 
 monero.wallet? wptr;
@@ -12,7 +13,6 @@ monero.WalletListener getWlptr() {
   _wlptr = monero.MONERO_cw_getWalletListener(wptr!);
   return _wlptr!;
 }
-
 
 monero.SubaddressAccount? subaddressAccount;
 
@@ -34,13 +34,14 @@ List<monero.SubaddressAccountRow> getAllAccount() {
   // final size = monero.Wallet_numSubaddressAccounts(wptr!);
   refreshAccounts();
   final int size = monero.SubaddressAccount_getAll_size(subaddressAccount!);
-  print("size: $size");
+  if (kDebugMode) print("size: $size");
   if (size == 0) {
     monero.Wallet_addSubaddressAccount(wptr!);
     return getAllAccount();
   }
   return List.generate(size, (index) {
-    return monero.SubaddressAccount_getAll_byIndex(subaddressAccount!, index: index);
+    return monero.SubaddressAccount_getAll_byIndex(subaddressAccount!,
+        index: index);
   });
 }
 
@@ -48,8 +49,10 @@ void addAccountSync({required String label}) {
   monero.Wallet_addSubaddressAccount(wptr!, label: label);
 }
 
-void setLabelForAccountSync({required int accountIndex, required String label}) {
-  monero.Wallet_setSubaddressLabel(wptr!, accountIndex: accountIndex, addressIndex: 0, label: label);
+void setLabelForAccountSync(
+    {required int accountIndex, required String label}) {
+  monero.Wallet_setSubaddressLabel(wptr!,
+      accountIndex: accountIndex, addressIndex: 0, label: label);
 }
 
 void _addAccount(String label) => addAccountSync(label: label);
@@ -66,7 +69,8 @@ Future<void> addAccount({required String label}) async {
   await store();
 }
 
-Future<void> setLabelForAccount({required int accountIndex, required String label}) async {
-    _setLabelForAccount({'accountIndex': accountIndex, 'label': label});
-    await store();
+Future<void> setLabelForAccount(
+    {required int accountIndex, required String label}) async {
+  _setLabelForAccount({'accountIndex': accountIndex, 'label': label});
+  await store();
 }

@@ -1,11 +1,13 @@
 import 'dart:ffi';
 import 'dart:isolate';
+
 import 'package:cw_wownero/api/account_list.dart';
 import 'package:cw_wownero/api/exceptions/wallet_creation_exception.dart';
 import 'package:cw_wownero/api/exceptions/wallet_opening_exception.dart';
 import 'package:cw_wownero/api/exceptions/wallet_restore_from_keys_exception.dart';
 import 'package:cw_wownero/api/exceptions/wallet_restore_from_seed_exception.dart';
 import 'package:cw_wownero/api/wallet.dart';
+import 'package:flutter/foundation.dart';
 import 'package:monero/wownero.dart' as wownero;
 
 wownero.WalletManager? _wmPtr;
@@ -15,9 +17,9 @@ final wownero.WalletManager wmPtr = Pointer.fromAddress((() {
     wownero.printStarts = false;
     _wmPtr ??= wownero.WalletManagerFactory_getWalletManager();
     wownero.WalletManagerFactory_setLogLevel(4);
-    print("ptr: $_wmPtr");
+    if (kDebugMode) print("ptr: $_wmPtr");
   } catch (e) {
-    print(e);
+    if (kDebugMode) print(e);
   }
   return _wmPtr!.address;
 })());
@@ -75,7 +77,7 @@ void restoreWalletFromSeedSync(
       networkType: nettype,
     );
   }
-  // print("wptr: $wptr");
+  // if (kDebugMode) print("wptr: $wptr");
   final status = wownero.Wallet_status(wptr!);
 
   if (status != 0) {
@@ -148,7 +150,7 @@ void restoreWalletFromSpendKeySync(
 
   if (status != 0) {
     final err = wownero.Wallet_errorString(wptr!);
-    print("err: $err");
+    if (kDebugMode) print("err: $err");
     throw WalletRestoreFromKeysException(message: err);
   }
 
@@ -183,12 +185,12 @@ void loadWallet(
       _lastOpenedWallet = path;
     }
   } catch (e) {
-    print(e);
+    if (kDebugMode) print(e);
   }
   final status = wownero.Wallet_status(wptr!);
   if (status != 0) {
     final err = wownero.Wallet_errorString(wptr!);
-    print(err);
+    if (kDebugMode) print(err);
     throw WalletOpeningException(message: err);
   }
 }

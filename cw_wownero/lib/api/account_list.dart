@@ -1,4 +1,5 @@
 import 'package:cw_wownero/api/wallet.dart';
+import 'package:flutter/foundation.dart';
 import 'package:monero/wownero.dart' as wownero;
 
 wownero.wallet? wptr;
@@ -33,7 +34,7 @@ List<wownero.SubaddressAccountRow> getAllAccount() {
   // final size = wownero.Wallet_numSubaddressAccounts(wptr!);
   refreshAccounts();
   final int size = wownero.SubaddressAccount_getAll_size(subaddressAccount!);
-  print("size: $size");
+  if (kDebugMode) print("size: $size");
   if (size == 0) {
     wownero.Wallet_addSubaddressAccount(wptr!);
     return getAllAccount();

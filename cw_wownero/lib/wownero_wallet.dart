@@ -18,8 +18,8 @@ import 'package:cw_wownero/api/structs/pending_transaction.dart';
 import 'package:cw_wownero/api/transaction_history.dart'
     as wownero_transaction_history;
 import 'package:cw_wownero/api/transaction_history.dart' as transaction_history;
-import 'package:cw_wownero/api/wallet.dart';
 import 'package:cw_wownero/api/wallet.dart' as wownero_wallet;
+import 'package:cw_wownero/api/wallet.dart';
 import 'package:cw_wownero/api/wownero_output.dart';
 import 'package:cw_wownero/pending_wownero_transaction.dart';
 import 'package:cw_wownero/wownero_amount_format.dart';
@@ -29,6 +29,7 @@ import 'package:cw_wownero/wownero_transaction_creation_exception.dart';
 import 'package:cw_wownero/wownero_transaction_history.dart';
 import 'package:cw_wownero/wownero_transaction_info.dart';
 import 'package:cw_wownero/wownero_wallet_addresses.dart';
+import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:monero/wownero.dart' as wownero;
 
@@ -151,7 +152,7 @@ abstract class WowneroWalletBase extends WalletBase<WowneroBalance,
     } catch (e) {
       syncStatus = FailedSyncStatus();
       syncStatusChanged?.call();
-      print(e);
+      if (kDebugMode) print(e);
     }
   }
 
@@ -170,7 +171,7 @@ abstract class WowneroWalletBase extends WalletBase<WowneroBalance,
     } catch (e) {
       syncStatus = FailedSyncStatus();
       syncStatusChanged?.call();
-      print(e);
+      if (kDebugMode) print(e);
       rethrow;
     }
   }
@@ -274,7 +275,7 @@ abstract class WowneroWalletBase extends WalletBase<WowneroBalance,
 
   @override
   Future<bool> save({bool prioritySave = false}) async {
-    print("save is called");
+    if (kDebugMode) print("save is called");
     await walletAddresses.updateAddressesInBox();
     if (!Platform.isWindows) {
       await backupWalletFiles(name: name!, type: WalletType.wownero);
@@ -344,7 +345,7 @@ abstract class WowneroWalletBase extends WalletBase<WowneroBalance,
       await transactionHistory!.save();
       _isTransactionUpdating = false;
     } catch (e) {
-      print(e);
+      if (kDebugMode) print(e);
       _isTransactionUpdating = false;
     }
   }
@@ -462,7 +463,7 @@ abstract class WowneroWalletBase extends WalletBase<WowneroBalance,
         syncStatusChanged?.call();
       }
     } catch (e) {
-      print(e.toString());
+      if (kDebugMode) print(e.toString());
     }
     onNewBlock?.call(height: height, blocksLeft: blocksLeft);
   }
@@ -473,7 +474,7 @@ abstract class WowneroWalletBase extends WalletBase<WowneroBalance,
       _askForUpdateBalance();
       await Future<void>.delayed(Duration(seconds: 1));
     } catch (e) {
-      print(e.toString());
+      if (kDebugMode) print(e.toString());
     }
     onNewTransaction?.call();
   }

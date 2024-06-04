@@ -11,10 +11,12 @@ import 'package:cw_core/wallet_type.dart';
 import 'package:cw_monero/api/exceptions/wallet_opening_exception.dart';
 import 'package:cw_monero/api/wallet_manager.dart' as monero_wallet_manager;
 import 'package:cw_monero/monero_wallet.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 
 class MoneroNewWalletCredentials extends WalletCredentials {
-  MoneroNewWalletCredentials({required String name, required String password, this.language})
+  MoneroNewWalletCredentials(
+      {required String name, required String password, this.language})
       : super(name: name, password: password);
 
   final String? language;
@@ -79,7 +81,7 @@ class MoneroWalletService extends WalletService<
       return wallet;
     } catch (e) {
       // TODO: Implement Exception for wallet list service.
-      print('MoneroWalletsManager Error: ${e.toString()}');
+      if (kDebugMode) print('MoneroWalletsManager Error: ${e.toString()}');
       rethrow;
     }
   }
@@ -91,7 +93,7 @@ class MoneroWalletService extends WalletService<
       return monero_wallet_manager.isWalletExist(path: path);
     } catch (e) {
       // TODO: Implement Exception for wallet list service.
-      print('MoneroWalletsManager Error: $e');
+      if (kDebugMode) print('MoneroWalletsManager Error: $e');
       rethrow;
     }
   }
@@ -170,7 +172,7 @@ class MoneroWalletService extends WalletService<
       return wallet;
     } catch (e) {
       // TODO: Implement Exception for wallet list service.
-      print('MoneroWalletsManager Error: $e');
+      if (kDebugMode) print('MoneroWalletsManager Error: $e');
       rethrow;
     }
   }
@@ -185,14 +187,14 @@ class MoneroWalletService extends WalletService<
           path: path,
           password: credentials.password!,
           seed: credentials.mnemonic!,
-          restoreHeight: credentials.height??0);
+          restoreHeight: credentials.height ?? 0);
       final wallet = MoneroWallet(walletInfo: credentials.walletInfo!);
       await wallet.init();
 
       return wallet;
     } catch (e) {
       // TODO: Implement Exception for wallet list service.
-      print('MoneroWalletsManager Error: $e');
+      if (kDebugMode) print('MoneroWalletsManager Error: $e');
       rethrow;
     }
   }
@@ -226,7 +228,7 @@ class MoneroWalletService extends WalletService<
         newFile.writeAsBytesSync(file.readAsBytesSync());
       });
     } catch (e) {
-      print(e.toString());
+      if (kDebugMode) print(e.toString());
     }
   }
 }

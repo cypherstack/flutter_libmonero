@@ -1,9 +1,10 @@
+import 'package:cw_core/account.dart';
+import 'package:cw_core/subaddress.dart';
 import 'package:cw_core/wallet_addresses.dart';
 import 'package:cw_core/wallet_info.dart';
-import 'package:cw_core/account.dart';
 import 'package:cw_monero/monero_account_list.dart';
 import 'package:cw_monero/monero_subaddress_list.dart';
-import 'package:cw_core/subaddress.dart';
+import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 
 part 'monero_wallet_addresses.g.dart';
@@ -55,7 +56,7 @@ abstract class MoneroWalletAddressesBase extends WalletAddresses with Store {
 
       await saveAddressesInBox();
     } catch (e) {
-      print(e.toString());
+      if (kDebugMode) print(e.toString());
     }
   }
 

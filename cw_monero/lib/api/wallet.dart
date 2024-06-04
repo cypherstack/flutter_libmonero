@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:isolate';
-import 'dart:io';
 
 import 'package:cw_monero/api/account_list.dart';
 import 'package:cw_monero/api/exceptions/setup_wallet_exception.dart';
-import 'package:ffi/ffi.dart';
+import 'package:flutter/foundation.dart';
 import 'package:monero/monero.dart' as monero;
 import 'package:monero/src/generated_bindings_monero.g.dart' as monero_gen;
 
@@ -83,21 +82,21 @@ Future<bool> setupNodeFuture(
     bool useSSL = false,
     bool isLightWallet = false,
     String? socksProxyAddress}) async {
-  print('''
-{
-  wptr!,
-  daemonAddress: $address,
-  useSsl: $useSSL,
-  proxyAddress: $socksProxyAddress ?? '',
-  daemonUsername: $login ?? '',
-  daemonPassword: $password ?? ''
-}
-''');
+//   if (kDebugMode) print('''
+// {
+//   wptr!,
+//   daemonAddress: $address,
+//   useSsl: $useSSL,
+//   proxyAddress: $socksProxyAddress ?? '',
+//   daemonUsername: $login ?? '',
+//   daemonPassword: $password ?? ''
+// }
+// ''');
 
   // Load the wallet as "offline" first
   // the reason being - wallet not initialized errors. we don't want crashes in here (or empty responses from functions).
   // monero.Wallet_init(wptr!, daemonAddress: '');
-  print("init: $address");
+  if (kDebugMode) print("init: $address");
   final waddr = wptr!.address;
   await Isolate.run(() {
     monero.Wallet_init(
@@ -113,8 +112,8 @@ Future<bool> setupNodeFuture(
   int status = monero.Wallet_status(wptr!);
   if (status != 0) {
     final err = monero.Wallet_errorString(wptr!);
-    print("init: $status");
-    print("init: $err");
+    if (kDebugMode) print("init: $status");
+    if (kDebugMode) print("init: $err");
     throw SetupWalletException(message: err);
   }
 

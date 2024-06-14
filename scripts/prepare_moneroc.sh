@@ -11,7 +11,8 @@ then
     git clone https://github.com/mrcyjanek/monero_c --branch rewrite-wip
     cd monero_c
     git checkout 21e05d6ef33aa3fc6e2550da3b2200d3bcedfc35
-    git reset --hard
+    git reset --hardgit config submodule.libs/wownero.url https://git.cypherstack.com/Cypher_Stack/wownero
+    git config submodule.libs/wownero-seed.url https://git.cypherstack.com/Cypher_Stack/wownero-seed
     git submodule update --init --force --recursive
     ./apply_patches.sh monero
     ./apply_patches.sh wownero

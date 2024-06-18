@@ -23,7 +23,9 @@ fi
 
 ../prepare_moneroc.sh
 pushd ../monero_c
+    rm -rf external/ios/build
     ./build_single.sh monero host-apple-ios -j8
+    rm -rf external/ios/build
     ./build_single.sh wownero host-apple-ios -j8
 popd
 
@@ -32,3 +34,36 @@ unxz -f ../monero_c/release/wownero/host-apple-ios_libwallet2_api_c.dylib.xz
 
 ln -s $(realpath ../monero_c/release/monero/host-apple-ios_libwallet2_api_c.dylib) ../../../../ios/monero_libwallet2_api_c.dylib || true
 ln -s $(realpath ../monero_c/release/wownero/host-apple-ios_libwallet2_api_c.dylib) ../../../../ios/wownero_libwallet2_api_c.dylib || true
+
+IOS_DIR="../../../../ios/"
+DYLIB_NAME="monero_libwallet2_api_c.dylib"
+DYLIB_LINK_PATH=$(realpath "../monero_c/release/monero/host-apple-ios_libwallet2_api_c.dylib")
+FRWK_DIR="${IOS_DIR}/MoneroWallet.framework"
+
+if [ ! -f $DYLIB_LINK_PATH ]; then
+    echo "Dylib is not found by the link: ${DYLIB_LINK_PATH}"
+    exit 0
+fi
+
+pushd $FRWK_DIR # go to iOS framework dir
+    lipo -create $DYLIB_LINK_PATH -output MoneroWallet
+popd
+echo "Generated ${FRWK_DIR}"
+
+
+IOS_DIR="../../../../ios/"
+DYLIB_NAME="wownero_libwallet2_api_c.dylib"
+DYLIB_LINK_PATH=$(realpath "../monero_c/release/wownero/host-apple-ios_libwallet2_api_c.dylib")
+FRWK_DIR="${IOS_DIR}/WowneroWallet.framework"
+
+if [ ! -f $DYLIB_LINK_PATH ]; then
+    echo "Dylib is not found by the link: ${DYLIB_LINK_PATH}"
+    exit 0
+fi
+
+pushd $FRWK_DIR # go to iOS framework dir
+    lipo -create $DYLIB_LINK_PATH -output WowneroWallet
+popd
+
+echo "Generated ${FRWK_DIR}"
+

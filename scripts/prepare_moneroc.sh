@@ -5,10 +5,11 @@ set -x -e
 cd "$(dirname "$0")"
 
 
+# Allow script caller to pass commit hash.
 # dirty hack to handle broken monero_c on android. Uses same hash on linux as well to make dev life easier
 CHASH="$1"
 if [ -z "$CHASH" ]; then
-  CHASH="21e05d6ef33aa3fc6e2550da3b2200d3bcedfc35"
+  CHASH="7a087ba24d7a3211a36329098339a15751114247"
 fi
 
 if [[ ! -d "monero_c" ]];

@@ -25,7 +25,7 @@ then
     NPROC="-j1"
 fi
 
-../prepare_moneroc.sh "060c27f91e23d7123e0eae535756212b81574ae6"
+../prepare_moneroc.sh
 
 # NOTE: -j1 is intentional. Otherwise you will run into weird behaviour on macos
 if [[ ! "x$USE_DOCKER" == "x" ]];

@@ -19,7 +19,7 @@ then
     exit 1
 fi
 
-../prepare_moneroc.sh "060c27f91e23d7123e0eae535756212b81574ae6"
+../prepare_moneroc.sh
 
 # export USE_DOCKER="ON"
 

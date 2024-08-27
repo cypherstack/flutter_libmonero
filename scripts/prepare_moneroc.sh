@@ -5,12 +5,18 @@ set -x -e
 cd "$(dirname "$0")"
 
 
+# Allow script caller to pass commit hash.
+# dirty hack to handle broken monero_c on android. Uses same hash on linux as well to make dev life easier
+# CHASH="$1"
+# if [ -z "$CHASH" ]; then
+#   CHASH="294b593db30e8803586dfd0f47e716ce1200c766"
+# fi
 
 if [[ ! -d "monero_c" ]];
 then
     git clone https://github.com/mrcyjanek/monero_c --branch rewrite-wip
     cd monero_c
-    git checkout 7d1950dbd5c65976c739fc1b1100767f21af58e7
+    git checkout "294b593db30e8803586dfd0f47e716ce1200c766"
     git reset --hard
     git config submodule.libs/wownero.url https://git.cypherstack.com/Cypher_Stack/wownero
     git config submodule.libs/wownero-seed.url https://git.cypherstack.com/Cypher_Stack/wownero-seed
@@ -61,4 +67,4 @@ String getPluginVersion() {
 }
 EOF
 
-echo "monero_c source prepared".
+echo "monero_c source prepared"

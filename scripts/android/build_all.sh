@@ -45,7 +45,7 @@ else
         pushd ../monero_c
             ./build_single.sh ${COIN} x86_64-linux-android $NPROC
             # ./build_single.sh ${COIN} i686-linux-android $NPROC
-            ./build_single.sh ${COIN} armv7a-linux-androideabi $NPROC
+            # ./build_single.sh ${COIN} armv7a-linux-androideabi $NPROC
             ./build_single.sh ${COIN} aarch64-linux-android $NPROC
         popd
     done

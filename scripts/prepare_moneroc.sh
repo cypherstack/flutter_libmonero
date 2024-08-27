@@ -9,7 +9,7 @@ cd "$(dirname "$0")"
 # dirty hack to handle broken monero_c on android. Uses same hash on linux as well to make dev life easier
 CHASH="$1"
 if [ -z "$CHASH" ]; then
-  CHASH="856d6552de17c51898f539c33f69e6b5b7943bef" # TODO update to refer to master once #38 is merged.
+  CHASH="294b593db30e8803586dfd0f47e716ce1200c766"
 fi
 
 if [[ ! -d "monero_c" ]];

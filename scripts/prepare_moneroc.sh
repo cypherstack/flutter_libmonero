@@ -14,9 +14,9 @@ cd "$(dirname "$0")"
 
 if [[ ! -d "monero_c" ]];
 then
-    git clone https://github.com/mrcyjanek/monero_c --branch rewrite-wip
+    git clone https://github.com/cypherstack/monero_c
     cd monero_c
-    git checkout "3cb38bee9385faf46b03fd73aab85f3ac4115bf7"
+    git checkout "f90b1f57b1337671b145e53e95ff5c2ecf67224d"
     git reset --hard
     git config submodule.libs/wownero.url https://git.cypherstack.com/Cypher_Stack/wownero
     git config submodule.libs/wownero-seed.url https://git.cypherstack.com/Cypher_Stack/wownero-seed

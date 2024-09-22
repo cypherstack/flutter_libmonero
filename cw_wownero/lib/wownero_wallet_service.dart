@@ -9,7 +9,7 @@ import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_service.dart';
 import 'package:cw_core/wallet_type.dart';
 import 'package:cw_wownero/api/exceptions/wallet_opening_exception.dart';
-import 'package:cw_wownero/api/wallet_manager.dart' as wownero_wallet_manager;
+import 'package:cw_wownero/api/wallet_manager.dart';
 import 'package:cw_wownero/wownero_wallet.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
@@ -73,13 +73,16 @@ class WowneroWalletService extends WalletService<
     try {
       final path =
           await pathForWallet(name: credentials.name!, type: getType());
-      await wownero_wallet_manager.createWallet(
+      final wowWallet = await WOWWalletManager.createWallet(
         path: path,
         password: credentials.password!,
         language: credentials.language ??
             "English", /*seedWordsLength: seedWordsLength*/
       );
-      final wallet = WowneroWallet(walletInfo: credentials.walletInfo!);
+      final wallet = WowneroWallet(
+        walletInfo: credentials.walletInfo!,
+        wallet: wowWallet,
+      );
       await wallet.init();
 
       return wallet;
@@ -91,10 +94,10 @@ class WowneroWalletService extends WalletService<
   }
 
   @override
-  Future<bool> isWalletExit(String name) async {
+  Future<bool> isWalletExist(String name) async {
     try {
       final path = await pathForWallet(name: name, type: getType());
-      return wownero_wallet_manager.isWalletExist(path: path);
+      return WOWWalletManager.isWalletExist(path: path);
     } catch (e) {
       // TODO: Implement Exception for wallet list service.
       if (kDebugMode) print('WowneroWalletsManager Error: $e');
@@ -111,11 +114,14 @@ class WowneroWalletService extends WalletService<
         await repairOldAndroidWallet(name);
       }
 
-      await wownero_wallet_manager
-          .openWalletAsync({'path': path, 'password': password});
+      final wowWallet = await WOWWalletManager.openWalletAsync(
+          {'path': path, 'password': password});
       final walletInfo = walletInfoSource.values.firstWhereOrNull(
           (info) => info.id == WalletBase.idFor(name, getType()))!;
-      final wallet = WowneroWallet(walletInfo: walletInfo);
+      final wallet = WowneroWallet(
+        walletInfo: walletInfo,
+        wallet: wowWallet,
+      );
       final isValid = wallet.walletAddresses.validate();
 
       if (!isValid) {
@@ -162,7 +168,7 @@ class WowneroWalletService extends WalletService<
     try {
       final path =
           await pathForWallet(name: credentials.name!, type: getType());
-      await wownero_wallet_manager.restoreFromKeys(
+      final wowWallet = await WOWWalletManager.restoreFromKeys(
           path: path,
           password: credentials.password!,
           language: credentials.language ?? "English",
@@ -170,7 +176,10 @@ class WowneroWalletService extends WalletService<
           address: credentials.address!,
           viewKey: credentials.viewKey!,
           spendKey: credentials.spendKey!);
-      final wallet = WowneroWallet(walletInfo: credentials.walletInfo!);
+      final wallet = WowneroWallet(
+        walletInfo: credentials.walletInfo!,
+        wallet: wowWallet,
+      );
       wallet.walletInfo.isRecovery = true;
       await wallet.init();
 
@@ -188,12 +197,15 @@ class WowneroWalletService extends WalletService<
     try {
       final path =
           await pathForWallet(name: credentials.name!, type: getType());
-      await wownero_wallet_manager.restoreFromSeed(
+      final wowWallet = await WOWWalletManager.restoreFromSeed(
           path: path,
           password: credentials.password!,
           seed: credentials.mnemonic!,
           restoreHeight: credentials.height ?? 0);
-      final wallet = WowneroWallet(walletInfo: credentials.walletInfo!);
+      final wallet = WowneroWallet(
+        walletInfo: credentials.walletInfo!,
+        wallet: wowWallet,
+      );
       wallet.walletInfo.isRecovery = true;
 
       final String seedString = credentials.mnemonic ?? '';

@@ -9,10 +9,11 @@ import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_service.dart';
 import 'package:cw_core/wallet_type.dart';
 import 'package:cw_monero/api/exceptions/wallet_opening_exception.dart';
-import 'package:cw_monero/api/wallet_manager.dart' as monero_wallet_manager;
 import 'package:cw_monero/monero_wallet.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
+
+import 'api/wallet_manager.dart';
 
 class MoneroNewWalletCredentials extends WalletCredentials {
   MoneroNewWalletCredentials(
@@ -71,11 +72,14 @@ class MoneroWalletService extends WalletService<
     try {
       final path =
           await pathForWallet(name: credentials.name!, type: getType());
-      await monero_wallet_manager.createWallet(
+      final xmrWallet = await XMRWalletManager.createWallet(
           path: path,
           password: credentials.password!,
           language: credentials.language ?? "English");
-      final wallet = MoneroWallet(walletInfo: credentials.walletInfo!);
+      final wallet = MoneroWallet(
+        walletInfo: credentials.walletInfo!,
+        wallet: xmrWallet,
+      );
       await wallet.init();
 
       return wallet;
@@ -87,10 +91,10 @@ class MoneroWalletService extends WalletService<
   }
 
   @override
-  Future<bool> isWalletExit(String name) async {
+  Future<bool> isWalletExist(String name) async {
     try {
       final path = await pathForWallet(name: name, type: getType());
-      return monero_wallet_manager.isWalletExist(path: path);
+      return XMRWalletManager.isWalletExist(path: path);
     } catch (e) {
       // TODO: Implement Exception for wallet list service.
       if (kDebugMode) print('MoneroWalletsManager Error: $e');
@@ -107,11 +111,14 @@ class MoneroWalletService extends WalletService<
         await repairOldAndroidWallet(name);
       }
 
-      await monero_wallet_manager
-          .openWalletAsync({'path': path, 'password': password});
+      final xmrWallet = await XMRWalletManager.openWalletAsync(
+          {'path': path, 'password': password});
       final walletInfo = walletInfoSource.values.firstWhereOrNull(
           (info) => info.id == WalletBase.idFor(name, getType()))!;
-      final wallet = MoneroWallet(walletInfo: walletInfo);
+      final wallet = MoneroWallet(
+        walletInfo: walletInfo,
+        wallet: xmrWallet,
+      );
       final isValid = wallet.walletAddresses.validate();
 
       if (!isValid) {
@@ -158,7 +165,7 @@ class MoneroWalletService extends WalletService<
     try {
       final path =
           await pathForWallet(name: credentials.name!, type: getType());
-      await monero_wallet_manager.restoreFromKeys(
+      final xmrWallet = await XMRWalletManager.restoreFromKeys(
           path: path,
           password: credentials.password!,
           language: credentials.language ?? "English",
@@ -166,7 +173,10 @@ class MoneroWalletService extends WalletService<
           address: credentials.address!,
           viewKey: credentials.viewKey!,
           spendKey: credentials.spendKey!);
-      final wallet = MoneroWallet(walletInfo: credentials.walletInfo!);
+      final wallet = MoneroWallet(
+        walletInfo: credentials.walletInfo!,
+        wallet: xmrWallet,
+      );
       await wallet.init();
 
       return wallet;
@@ -183,12 +193,15 @@ class MoneroWalletService extends WalletService<
     try {
       final path =
           await pathForWallet(name: credentials.name!, type: getType());
-      await monero_wallet_manager.restoreFromSeed(
+      final xmrWallet = await XMRWalletManager.restoreFromSeed(
           path: path,
           password: credentials.password!,
           seed: credentials.mnemonic!,
           restoreHeight: credentials.height ?? 0);
-      final wallet = MoneroWallet(walletInfo: credentials.walletInfo!);
+      final wallet = MoneroWallet(
+        walletInfo: credentials.walletInfo!,
+        wallet: xmrWallet,
+      );
       await wallet.init();
 
       return wallet;

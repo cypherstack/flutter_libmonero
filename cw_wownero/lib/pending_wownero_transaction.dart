@@ -2,8 +2,7 @@ import 'package:cw_core/amount_converter.dart';
 import 'package:cw_core/crypto_currency.dart';
 import 'package:cw_core/pending_transaction.dart';
 import 'package:cw_wownero/api/structs/pending_transaction.dart';
-import 'package:cw_wownero/api/transaction_history.dart'
-    as wownero_transaction_history;
+import 'package:cw_wownero/api/wallet.dart';
 
 class DoubleSpendException implements Exception {
   DoubleSpendException();
@@ -14,9 +13,11 @@ class DoubleSpendException implements Exception {
 }
 
 class PendingWowneroTransaction with PendingTransaction {
-  PendingWowneroTransaction(this.pendingTransactionDescription);
+  PendingWowneroTransaction(this.pendingTransactionDescription, this.wallet);
 
   final PendingTransactionDescription pendingTransactionDescription;
+
+  final WOWWallet wallet;
 
   @override
   String get id => pendingTransactionDescription.hash!;
@@ -32,7 +33,7 @@ class PendingWowneroTransaction with PendingTransaction {
   @override
   Future<void> commit() async {
     try {
-      wownero_transaction_history.commitTransactionFromPointerAddress(
+      wallet.commitTransactionFromPointerAddress(
           address: pendingTransactionDescription.pointerAddress!);
     } catch (e) {
       final message = e.toString();

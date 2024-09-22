@@ -1,5 +1,5 @@
 import 'package:cw_core/account.dart';
-import 'package:cw_core/subaddress.dart';
+import 'package:cw_core/sub_address.dart';
 import 'package:cw_core/wallet_addresses.dart';
 import 'package:cw_core/wallet_info.dart';
 import 'package:cw_monero/monero_account_list.dart';
@@ -7,16 +7,21 @@ import 'package:cw_monero/monero_subaddress_list.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 
+import 'api/wallet.dart';
+
 part 'monero_wallet_addresses.g.dart';
 
 class MoneroWalletAddresses = MoneroWalletAddressesBase
     with _$MoneroWalletAddresses;
 
 abstract class MoneroWalletAddressesBase extends WalletAddresses with Store {
-  MoneroWalletAddressesBase(WalletInfo walletInfo) : super(walletInfo) {
-    accountList = MoneroAccountList();
-    subaddressList = MoneroSubaddressList();
+  MoneroWalletAddressesBase(WalletInfo walletInfo, this.wallet)
+      : super(walletInfo) {
+    accountList = MoneroAccountList(wallet);
+    subaddressList = MoneroSubaddressList(wallet);
   }
+
+  final XMRWallet wallet;
 
   @override
   @observable
@@ -43,14 +48,14 @@ abstract class MoneroWalletAddressesBase extends WalletAddresses with Store {
   @override
   Future<void> updateAddressesInBox() async {
     try {
-      final _subaddressList = MoneroSubaddressList();
+      final _subaddressList = MoneroSubaddressList(wallet);
 
       addressesMap!.clear();
 
       accountList.accounts.forEach((account) {
         _subaddressList.update(accountIndex: account.id);
         _subaddressList.subaddresses!.forEach((subaddress) {
-          addressesMap![subaddress.address!] = subaddress.label!;
+          addressesMap![subaddress.address] = subaddress.label;
         });
       });
 

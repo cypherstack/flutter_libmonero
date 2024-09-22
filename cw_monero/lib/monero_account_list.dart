@@ -1,20 +1,23 @@
 import 'package:cw_core/account.dart';
-import 'package:cw_monero/api/account_list.dart' as account_list;
 import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:monero/monero.dart' as monero;
+
+import 'api/wallet.dart';
 
 part 'monero_account_list.g.dart';
 
 class MoneroAccountList = MoneroAccountListBase with _$MoneroAccountList;
 
 abstract class MoneroAccountListBase with Store {
-  MoneroAccountListBase()
+  MoneroAccountListBase(this.wallet)
       : accounts = ObservableList<Account>(),
         _isRefreshing = false,
         _isUpdating = false {
     refresh();
   }
+
+  final XMRWallet wallet;
 
   @observable
   ObservableList<Account> accounts;
@@ -43,7 +46,7 @@ abstract class MoneroAccountListBase with Store {
     }
   }
 
-  List<Account> getAll() => account_list.getAllAccount().map((accountRow) {
+  List<Account> getAll() => wallet.getAllAccount().map((accountRow) {
         // final balance = monero.SubaddressAccountRow_getUnlockedBalance(accountRow);
 
         return Account(
@@ -54,14 +57,13 @@ abstract class MoneroAccountListBase with Store {
       }).toList();
 
   Future addAccount({required String label}) async {
-    await account_list.addAccount(label: label);
+    await wallet.addAccount(label: label);
     update();
   }
 
   Future setLabelAccount(
       {required int accountIndex, required String label}) async {
-    await account_list.setLabelForAccount(
-        accountIndex: accountIndex, label: label);
+    await wallet.setLabelForAccount(accountIndex: accountIndex, label: label);
     update();
   }
 
@@ -72,7 +74,7 @@ abstract class MoneroAccountListBase with Store {
 
     try {
       _isRefreshing = true;
-      account_list.refreshAccounts();
+      wallet.refreshAccounts();
       _isRefreshing = false;
     } catch (e) {
       _isRefreshing = false;

@@ -1,5 +1,5 @@
 import 'package:cw_core/account.dart';
-import 'package:cw_wownero/api/account_list.dart' as account_list;
+import 'package:cw_wownero/api/wallet.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:monero/wownero.dart' as wownero;
@@ -9,12 +9,14 @@ part 'wownero_account_list.g.dart';
 class WowneroAccountList = WowneroAccountListBase with _$WowneroAccountList;
 
 abstract class WowneroAccountListBase with Store {
-  WowneroAccountListBase()
+  WowneroAccountListBase(this.wallet)
       : accounts = ObservableList<Account>(),
         _isRefreshing = false,
         _isUpdating = false {
     refresh();
   }
+
+  final WOWWallet wallet;
 
   @observable
   ObservableList<Account> accounts;
@@ -43,7 +45,7 @@ abstract class WowneroAccountListBase with Store {
     }
   }
 
-  List<Account> getAll() => account_list.getAllAccount().map((accountRow) {
+  List<Account> getAll() => wallet.getAllAccount().map((accountRow) {
         // final balance = wownero.SubaddressAccountRow_getUnlockedBalance(accountRow);
 
         return Account(
@@ -54,14 +56,13 @@ abstract class WowneroAccountListBase with Store {
       }).toList();
 
   Future addAccount({required String label}) async {
-    await account_list.addAccount(label: label);
+    await wallet.addAccount(label: label);
     update();
   }
 
   Future setLabelAccount(
       {required int accountIndex, required String label}) async {
-    await account_list.setLabelForAccount(
-        accountIndex: accountIndex, label: label);
+    await wallet.setLabelForAccount(accountIndex: accountIndex, label: label);
     update();
   }
 
@@ -72,7 +73,7 @@ abstract class WowneroAccountListBase with Store {
 
     try {
       _isRefreshing = true;
-      account_list.refreshAccounts();
+      wallet.refreshAccounts();
       _isRefreshing = false;
     } catch (e) {
       _isRefreshing = false;

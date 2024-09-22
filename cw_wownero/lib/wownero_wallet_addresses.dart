@@ -1,7 +1,8 @@
 import 'package:cw_core/account.dart';
-import 'package:cw_core/subaddress.dart';
+import 'package:cw_core/sub_address.dart';
 import 'package:cw_core/wallet_addresses.dart';
 import 'package:cw_core/wallet_info.dart';
+import 'package:cw_wownero/api/wallet.dart';
 import 'package:cw_wownero/wownero_account_list.dart';
 import 'package:cw_wownero/wownero_subaddress_list.dart';
 import 'package:flutter/foundation.dart';
@@ -13,10 +14,13 @@ class WowneroWalletAddresses = WowneroWalletAddressesBase
     with _$WowneroWalletAddresses;
 
 abstract class WowneroWalletAddressesBase extends WalletAddresses with Store {
-  WowneroWalletAddressesBase(WalletInfo walletInfo) : super(walletInfo) {
-    accountList = WowneroAccountList();
-    subaddressList = WowneroSubaddressList();
+  WowneroWalletAddressesBase(WalletInfo walletInfo, this.wallet)
+      : super(walletInfo) {
+    accountList = WowneroAccountList(wallet);
+    subaddressList = WowneroSubaddressList(wallet);
   }
+
+  final WOWWallet wallet;
 
   @override
   @observable
@@ -43,14 +47,14 @@ abstract class WowneroWalletAddressesBase extends WalletAddresses with Store {
   @override
   Future<void> updateAddressesInBox() async {
     try {
-      final _subaddressList = WowneroSubaddressList();
+      final _subaddressList = WowneroSubaddressList(wallet);
 
       addressesMap!.clear();
 
       accountList.accounts.forEach((account) {
         _subaddressList.update(accountIndex: account.id);
         _subaddressList.subaddresses!.forEach((subaddress) {
-          addressesMap![subaddress.address!] = subaddress.label!;
+          addressesMap![subaddress.address] = subaddress.label;
         });
       });
 

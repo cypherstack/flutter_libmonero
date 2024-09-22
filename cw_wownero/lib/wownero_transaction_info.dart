@@ -3,7 +3,6 @@ import 'package:cw_core/parseBoolFromString.dart';
 import 'package:cw_core/transaction_direction.dart';
 import 'package:cw_core/transaction_info.dart';
 import 'package:cw_wownero/api/structs/transaction_info_row.dart';
-import 'package:cw_wownero/api/transaction_history.dart';
 import 'package:cw_wownero/wownero_amount_format.dart';
 
 class WowneroTransactionInfo extends TransactionInfo {
@@ -18,8 +17,10 @@ class WowneroTransactionInfo extends TransactionInfo {
       this.addressIndex,
       this.fee);
 
-  WowneroTransactionInfo.fromMap(Map map)
-      : id = (map['hash'] ?? '') as String,
+  WowneroTransactionInfo.fromMap(
+    Map map,
+    String Function(String txid) getTxKey,
+  )   : id = (map['hash'] ?? '') as String,
         height = (map['height'] ?? 0) as int,
         direction =
             parseTransactionDirectionFromNumber(map['direction'] as String) ??
@@ -40,8 +41,10 @@ class WowneroTransactionInfo extends TransactionInfo {
     confirmations = map['confirmations'] as int?;
   }
 
-  WowneroTransactionInfo.fromRow(TransactionInfoRow row)
-      : id = row.getHash(),
+  WowneroTransactionInfo.fromRow(
+    TransactionInfoRow row,
+    String Function(String txid) getTxKey,
+  )   : id = row.getHash(),
         height = row.blockHeight,
         direction = parseTransactionDirectionFromInt(row.direction) ??
             TransactionDirection.incoming,

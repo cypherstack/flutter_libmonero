@@ -1,5 +1,5 @@
-import 'package:cw_core/subaddress.dart';
-import 'package:cw_monero/api/subaddress_list.dart' as subaddress_list;
+import 'package:cw_core/sub_address.dart';
+import 'package:cw_monero/api/wallet.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:mobx/mobx.dart';
@@ -10,11 +10,13 @@ class MoneroSubaddressList = MoneroSubaddressListBase
     with _$MoneroSubaddressList;
 
 abstract class MoneroSubaddressListBase with Store {
-  MoneroSubaddressListBase() {
+  MoneroSubaddressListBase(this.wallet) {
     _isRefreshing = false;
     _isUpdating = false;
     subaddresses = ObservableList<Subaddress>();
   }
+
+  final XMRWallet wallet;
 
   @observable
   ObservableList<Subaddress>? subaddresses;
@@ -40,7 +42,7 @@ abstract class MoneroSubaddressListBase with Store {
   }
 
   List<Subaddress> getAll() {
-    var subaddresses = subaddress_list.getAllSubaddresses();
+    List<Subaddress> subaddresses = wallet.getAllSubaddresses();
 
     if (subaddresses.length > 2) {
       final primary = subaddresses.first;
@@ -57,7 +59,8 @@ abstract class MoneroSubaddressListBase with Store {
               label.toLowerCase() == 'Untitled account'.toLowerCase();
       final isPrimaryAddress = id == 0 && hasDefaultAddressName;
       return Subaddress(
-          id: id,
+          addressIndex: id,
+          accountIndex: s.accountIndex,
           address: address,
           label: isPrimaryAddress
               ? 'Primary address'
@@ -69,16 +72,16 @@ abstract class MoneroSubaddressListBase with Store {
 
   Future addSubaddress(
       {required int accountIndex, required String label}) async {
-    await subaddress_list.addSubaddress(
-        accountIndex: accountIndex, label: label);
+    await wallet.addSubaddress(accountIndex: accountIndex, label: label);
     update(accountIndex: accountIndex);
   }
 
-  Future setLabelSubaddress(
-      {required int accountIndex,
-      required int addressIndex,
-      required String label}) async {
-    await subaddress_list.setLabelForSubaddress(
+  Future setLabelSubaddress({
+    required int accountIndex,
+    required int addressIndex,
+    required String label,
+  }) async {
+    await wallet.setLabelForSubaddress(
         accountIndex: accountIndex, addressIndex: addressIndex, label: label);
     update(accountIndex: accountIndex);
   }
@@ -90,7 +93,7 @@ abstract class MoneroSubaddressListBase with Store {
 
     try {
       _isRefreshing = true;
-      subaddress_list.refreshSubaddresses(accountIndex: accountIndex);
+      wallet.refreshSubaddresses(accountIndex: accountIndex);
       _isRefreshing = false;
     } on PlatformException catch (e) {
       _isRefreshing = false;

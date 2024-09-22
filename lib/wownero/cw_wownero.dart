@@ -38,7 +38,8 @@ class CWWowneroAccountList extends WowneroAccountList {
   @override
   Future<void> addAccount(Object wallet, {String? label}) async {
     final wowneroWallet = wallet as WowneroWallet;
-    await wowneroWallet.walletAddresses.accountList.addAccount(label: label??"");
+    await wowneroWallet.walletAddresses.accountList
+        .addAccount(label: label ?? "");
   }
 
   @override
@@ -46,7 +47,7 @@ class CWWowneroAccountList extends WowneroAccountList {
       {int? accountIndex, String? label}) async {
     final wowneroWallet = wallet as WowneroWallet;
     await wowneroWallet.walletAddresses.accountList
-        .setLabelAccount(accountIndex: accountIndex??0, label: label??"");
+        .setLabelAccount(accountIndex: accountIndex ?? 0, label: label ?? "");
   }
 }
 
@@ -58,11 +59,8 @@ class CWWowneroSubaddressList extends WowneroSubaddressList {
   @computed
   ObservableList<Subaddress> get subaddresses {
     final wowneroWallet = _wallet as WowneroWallet;
-    final subAddresses = wowneroWallet
-        .walletAddresses.subaddressList.subaddresses!
-        .map((sub) =>
-            Subaddress(id: sub.id, address: sub.address, label: sub.label))
-        .toList();
+    final subAddresses =
+        wowneroWallet.walletAddresses.subaddressList.subaddresses!;
     return ObservableList<Subaddress>.of(subAddresses);
   }
 
@@ -70,24 +68,20 @@ class CWWowneroSubaddressList extends WowneroSubaddressList {
   void update(Object wallet, {int? accountIndex}) {
     final wowneroWallet = wallet as WowneroWallet;
     wowneroWallet.walletAddresses.subaddressList
-        .update(accountIndex: accountIndex??0);
+        .update(accountIndex: accountIndex ?? 0);
   }
 
   @override
   void refresh(Object wallet, {int? accountIndex}) {
     final wowneroWallet = wallet as WowneroWallet;
     wowneroWallet.walletAddresses.subaddressList
-        .refresh(accountIndex: accountIndex??0);
+        .refresh(accountIndex: accountIndex ?? 0);
   }
 
   @override
   List<Subaddress> getAll(Object wallet) {
     final wowneroWallet = wallet as WowneroWallet;
-    return wowneroWallet.walletAddresses.subaddressList
-        .getAll()
-        .map((sub) =>
-            Subaddress(id: sub.id, label: sub.label, address: sub.address))
-        .toList();
+    return wowneroWallet.walletAddresses.subaddressList.subaddresses!;
   }
 
   @override
@@ -95,7 +89,7 @@ class CWWowneroSubaddressList extends WowneroSubaddressList {
       {int? accountIndex, String? label}) async {
     final wowneroWallet = wallet as WowneroWallet;
     await wowneroWallet.walletAddresses.subaddressList
-        .addSubaddress(accountIndex: accountIndex??0, label: label??"");
+        .addSubaddress(accountIndex: accountIndex ?? 0, label: label ?? "");
   }
 
   @override
@@ -103,7 +97,9 @@ class CWWowneroSubaddressList extends WowneroSubaddressList {
       {int? accountIndex, int? addressIndex, String? label}) async {
     final wowneroWallet = wallet as WowneroWallet;
     await wowneroWallet.walletAddresses.subaddressList.setLabelSubaddress(
-        accountIndex: accountIndex??0, addressIndex: addressIndex??0, label: label??"");
+        accountIndex: accountIndex ?? 0,
+        addressIndex: addressIndex ?? 0,
+        label: label ?? "");
   }
 }
 
@@ -297,11 +293,6 @@ class CWWownero extends Wownero {
     final wowneroWallet = wallet as WowneroWallet;
     wowneroWallet.walletAddresses.account =
         wownero_account.Account(id: id, label: label);
-  }
-
-  @override
-  void onStartup() {
-    wownero_wallet_api.onStartup();
   }
 
   @override

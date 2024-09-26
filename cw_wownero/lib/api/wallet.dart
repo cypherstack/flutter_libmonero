@@ -517,13 +517,14 @@ class WOWWallet {
     );
   }
 
-  Future<PendingTransactionDescription> createTransactionSync(
-      {required String address,
-      required String paymentId,
-      required int priorityRaw,
-      String? amount,
-      int accountIndex = 0,
-      List<String> preferredInputs = const []}) async {
+  Future<PendingTransactionDescription> createTransactionSync({
+    required String address,
+    required String paymentId,
+    required int priorityRaw,
+    String? amount,
+    int accountIndex = 0,
+    required List<String> preferredInputs,
+  }) async {
     final amt = amount == null ? 0 : wownero.Wallet_amountFromString(amount);
 
     final address_ = address.toNativeUtf8();
@@ -579,12 +580,13 @@ class WOWWallet {
     );
   }
 
-  PendingTransactionDescription createTransactionMultDestSync(
-      {required List<WowneroOutput> outputs,
-      required String paymentId,
-      required int priorityRaw,
-      int accountIndex = 0,
-      List<String> preferredInputs = const []}) {
+  PendingTransactionDescription createTransactionMultDestSync({
+    required List<WowneroOutput> outputs,
+    required String paymentId,
+    required int priorityRaw,
+    int accountIndex = 0,
+    required List<String> preferredInputs,
+  }) {
     final txptr = wownero.Wallet_createTransactionMultDest(
       wptr,
       dstAddr: outputs.map((e) => e.address!).toList(),
@@ -595,6 +597,7 @@ class WOWWallet {
       mixinCount: 0,
       pendingTransactionPriority: priorityRaw,
       subaddr_account: accountIndex,
+      preferredInputs: preferredInputs,
     );
     if (wownero.PendingTransaction_status(txptr) != 0) {
       throw CreationTransactionException(
@@ -640,12 +643,13 @@ class WOWWallet {
     final preferredInputs = args['preferredInputs'] as List<String>;
 
     return createTransactionSync(
-        address: address,
-        paymentId: paymentId,
-        amount: amount,
-        priorityRaw: priorityRaw,
-        accountIndex: accountIndex,
-        preferredInputs: preferredInputs);
+      address: address,
+      paymentId: paymentId,
+      amount: amount,
+      priorityRaw: priorityRaw,
+      accountIndex: accountIndex,
+      preferredInputs: preferredInputs,
+    );
   }
 
   PendingTransactionDescription _createTransactionMultDestSync(Map args) {
@@ -656,20 +660,22 @@ class WOWWallet {
     final preferredInputs = args['preferredInputs'] as List<String>;
 
     return createTransactionMultDestSync(
-        outputs: outputs,
-        paymentId: paymentId,
-        priorityRaw: priorityRaw,
-        accountIndex: accountIndex,
-        preferredInputs: preferredInputs);
+      outputs: outputs,
+      paymentId: paymentId,
+      priorityRaw: priorityRaw,
+      accountIndex: accountIndex,
+      preferredInputs: preferredInputs,
+    );
   }
 
-  Future<PendingTransactionDescription> createTransaction(
-          {required String address,
-          required int priorityRaw,
-          String? amount,
-          String paymentId = '',
-          int accountIndex = 0,
-          List<String> preferredInputs = const []}) async =>
+  Future<PendingTransactionDescription> createTransaction({
+    required String address,
+    required int priorityRaw,
+    String? amount,
+    String paymentId = '',
+    int accountIndex = 0,
+    required List<String> preferredInputs,
+  }) async =>
       _createTransactionSync({
         'address': address,
         'paymentId': paymentId,
@@ -679,12 +685,13 @@ class WOWWallet {
         'preferredInputs': preferredInputs
       });
 
-  Future<PendingTransactionDescription> createTransactionMultDest(
-          {required List<WowneroOutput> outputs,
-          required int priorityRaw,
-          String paymentId = '',
-          int accountIndex = 0,
-          List<String> preferredInputs = const []}) async =>
+  Future<PendingTransactionDescription> createTransactionMultDest({
+    required List<WowneroOutput> outputs,
+    required int priorityRaw,
+    String paymentId = '',
+    int accountIndex = 0,
+    required List<String> preferredInputs,
+  }) async =>
       _createTransactionMultDestSync({
         'outputs': outputs,
         'paymentId': paymentId,

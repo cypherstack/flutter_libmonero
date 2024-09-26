@@ -225,7 +225,7 @@ class _MyAppState extends State<MyApp> {
                           priority: wownero.getDefaultTransactionPriority());
                   loggerPrint(tmp);
                   Future<PendingTransaction> awaitPendingTransaction =
-                      walletBase!.createTransaction(tmp);
+                      walletBase!.createTransaction(tmp, inputs: null);
                   loggerPrint(output);
                   PendingWowneroTransaction pendingWowneroTransaction =
                       await awaitPendingTransaction

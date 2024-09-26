@@ -11,6 +11,7 @@ import 'package:cw_core/pending_transaction.dart';
 import 'package:cw_core/sync_status.dart';
 import 'package:cw_core/transaction_direction.dart';
 import 'package:cw_core/transaction_priority.dart';
+import 'package:cw_core/utxo.dart';
 import 'package:cw_core/wallet_base.dart';
 import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_type.dart';
@@ -64,6 +65,8 @@ abstract class WowneroWalletBase extends WalletBase<WowneroBalance,
   }
 
   static const int _autoSaveInterval = 30;
+
+  wownero.Coins? _coinsPointer;
 
   final WOWWallet wallet;
 
@@ -182,18 +185,34 @@ abstract class WowneroWalletBase extends WalletBase<WowneroBalance,
   }
 
   @override
-  Future<PendingTransaction> createTransaction(Object credentials) async {
+  Future<PendingTransaction> createTransaction(
+    Object credentials, {
+    required List<UTXO>? inputs,
+  }) async {
     final _credentials = credentials as WowneroTransactionCreationCredentials;
     final outputs = _credentials.outputs!;
     final hasMultiDestination = outputs.length > 1;
     final unlockedBalance =
         wallet.getUnlockedBalance(accountIndex: walletAddresses.account!.id);
 
-    PendingTransactionDescription pendingTransactionDescription;
+    final PendingTransactionDescription pendingTransactionDescription;
 
     if (!(syncStatus is SyncedSyncStatus)) {
       throw WowneroTransactionCreationException('The wallet is not synced.');
     }
+
+    if (inputs == null || inputs.isEmpty) {
+      await updateUTXOs();
+      inputs = utxos;
+    }
+
+    inputs.removeWhere((utxo) => utxo.isFrozen && !utxo.isUnlocked);
+
+    if (inputs.isEmpty) {
+      throw Exception("No usable inputs found!");
+    }
+
+    final inputStrings = inputs.map((e) => e.keyImage).toList();
 
     if (hasMultiDestination) {
       if (outputs
@@ -220,9 +239,11 @@ abstract class WowneroWalletBase extends WalletBase<WowneroBalance,
       }).toList();
 
       pendingTransactionDescription = await wallet.createTransactionMultDest(
-          outputs: wowneroOutputs,
-          priorityRaw: _credentials.priority!.serialize()!,
-          accountIndex: walletAddresses.account!.id);
+        outputs: wowneroOutputs,
+        priorityRaw: _credentials.priority!.serialize()!,
+        accountIndex: walletAddresses.account!.id,
+        preferredInputs: inputStrings,
+      );
     } else {
       final output = outputs.first;
       final address =
@@ -241,10 +262,12 @@ abstract class WowneroWalletBase extends WalletBase<WowneroBalance,
       }
 
       pendingTransactionDescription = await wallet.createTransaction(
-          address: address!,
-          amount: amount,
-          priorityRaw: _credentials.priority!.serialize()!,
-          accountIndex: walletAddresses.account!.id);
+        address: address!,
+        amount: amount,
+        priorityRaw: _credentials.priority!.serialize()!,
+        accountIndex: walletAddresses.account!.id,
+        preferredInputs: inputStrings,
+      );
     }
 
     return PendingWowneroTransaction(pendingTransactionDescription, wallet);
@@ -350,6 +373,97 @@ abstract class WowneroWalletBase extends WalletBase<WowneroBalance,
 
   String getSubaddressLabel(int accountIndex, int addressIndex) {
     return wallet.getSubaddressLabel(accountIndex, addressIndex);
+  }
+
+  Future<void> freeze(String keyImage) async {
+    // TODO: replace assert with proper error
+    assert(keyImage.isNotEmpty);
+
+    final count = wownero.Coins_getAll_size(_coinsPointer!);
+
+    for (int i = 0; i < count; i++) {
+      final coinPointer = wownero.Coins_coin(_coinsPointer!, i);
+
+      if (keyImage == wownero.CoinsInfo_keyImage(coinPointer)) {
+        wownero.Coins_setFrozen(coinPointer, index: i);
+        return;
+      }
+    }
+
+    throw Exception(
+        "Can't freeze utxo for the gen keyImage if it cannot be found. *points at temple* ");
+  }
+
+  Future<void> thaw(String keyImage) async {
+    // TODO: replace assert with proper error
+    assert(keyImage.isNotEmpty);
+
+    final count = wownero.Coins_getAll_size(_coinsPointer!);
+
+    for (int i = 0; i < count; i++) {
+      final coinPointer = wownero.Coins_coin(_coinsPointer!, i);
+
+      if (keyImage == wownero.CoinsInfo_keyImage(coinPointer)) {
+        wownero.Coins_thaw(coinPointer, index: i);
+        return;
+      }
+    }
+
+    throw Exception(
+        "Can't thaw utxo for the gen keyImage if it cannot be found. *points at temple* ");
+  }
+
+  void _refreshCoins() {
+    _coinsPointer = wownero.Wallet_coins(wallet.wptr);
+    wownero.Coins_refresh(_coinsPointer!);
+  }
+
+  @override
+  Future<void> updateUTXOs() async {
+    try {
+      utxos.clear();
+
+      _refreshCoins();
+      final count = wownero.Coins_getAll_size(_coinsPointer!);
+
+      if (kDebugMode) {
+        print("wownero::found_utxo_count=$count");
+      }
+
+      for (int i = 0; i < count; i++) {
+        final coinPointer = wownero.Coins_coin(_coinsPointer!, i);
+
+        // if (!wownero.CoinsInfo_spent(coinPointer)) {
+        final hash = wownero.CoinsInfo_hash(coinPointer);
+
+        if (hash.isNotEmpty) {
+          final unspent = UTXO(
+            address: wownero.CoinsInfo_address(coinPointer),
+            hash: hash,
+            keyImage: wownero.CoinsInfo_keyImage(coinPointer),
+            value: wownero.CoinsInfo_amount(coinPointer),
+            isFrozen: wownero.CoinsInfo_frozen(coinPointer),
+            isUnlocked: wownero.CoinsInfo_unlocked(coinPointer),
+            vout: wownero.CoinsInfo_internalOutputIndex(coinPointer),
+            spent: wownero.CoinsInfo_spent(coinPointer),
+            height: wownero.CoinsInfo_blockHeight(coinPointer),
+            coinbase: wownero.CoinsInfo_coinbase(coinPointer),
+          );
+
+          utxos.add(unspent);
+        } else {
+          if (kDebugMode) {
+            print("Found empty hash in wownero utxo?!");
+          }
+        }
+        // }
+      }
+      _askForUpdateBalance();
+    } catch (e, s) {
+      if (kDebugMode) {
+        print("$e\n$s");
+      }
+    }
   }
 
   List<WowneroTransactionInfo> _getAllTransactions(dynamic _) => wallet

@@ -13,6 +13,7 @@ import 'package:cw_core/pending_transaction.dart';
 import 'package:cw_core/sync_status.dart';
 import 'package:cw_core/transaction_direction.dart';
 import 'package:cw_core/transaction_priority.dart';
+import 'package:cw_core/utxo.dart';
 import 'package:cw_core/wallet_base.dart';
 import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_type.dart';
@@ -64,6 +65,8 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
   }
 
   static const int _autoSaveInterval = 63;
+
+  monero.Coins? _coinsPointer;
 
   final XMRWallet wallet;
 
@@ -178,18 +181,36 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
   }
 
   @override
-  Future<PendingTransaction> createTransaction(Object credentials) async {
+  Future<PendingTransaction> createTransaction(
+    Object credentials, {
+    required List<UTXO>? inputs,
+  }) async {
     final _credentials = credentials as MoneroTransactionCreationCredentials;
     final outputs = _credentials.outputs!;
     final hasMultiDestination = outputs.length > 1;
     final unlockedBalance =
         wallet.getUnlockedBalance(accountIndex: walletAddresses.account!.id);
 
-    PendingTransactionDescription pendingTransactionDescription;
+    final PendingTransactionDescription pendingTransactionDescription;
 
     if (!(syncStatus is SyncedSyncStatus)) {
       throw MoneroTransactionCreationException('The wallet is not synced.');
     }
+
+    if (inputs == null || inputs.isEmpty) {
+      await updateUTXOs();
+      inputs = utxos;
+    }
+
+    inputs.removeWhere((utxo) => utxo.isFrozen && !utxo.isUnlocked);
+
+    if (inputs.isEmpty) {
+      throw Exception("No usable inputs found!");
+    }
+
+    print("INPUTS TO USE: $inputs");
+
+    final inputStrings = inputs.map((e) => e.keyImage).toList();
 
     if (hasMultiDestination) {
       if (outputs
@@ -216,9 +237,11 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
       }).toList();
 
       pendingTransactionDescription = await wallet.createTransactionMultDest(
-          outputs: moneroOutputs,
-          priorityRaw: _credentials.priority!.serialize()!,
-          accountIndex: walletAddresses.account!.id);
+        outputs: moneroOutputs,
+        priorityRaw: _credentials.priority!.serialize()!,
+        accountIndex: walletAddresses.account!.id,
+        preferredInputs: inputStrings,
+      );
     } else {
       final output = outputs.first;
       final address =
@@ -237,10 +260,12 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
       }
 
       pendingTransactionDescription = await wallet.createTransaction(
-          address: address!,
-          amount: amount,
-          priorityRaw: _credentials.priority!.serialize()!,
-          accountIndex: walletAddresses.account!.id);
+        address: address!,
+        amount: amount,
+        priorityRaw: _credentials.priority!.serialize()!,
+        accountIndex: walletAddresses.account!.id,
+        preferredInputs: inputStrings,
+      );
     }
 
     return PendingMoneroTransaction(pendingTransactionDescription, wallet);
@@ -349,6 +374,57 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
 
   bool validateAddress(String address) {
     return monero.Wallet_addressValid(address, 0);
+  }
+
+  void _refreshCoins() {
+    _coinsPointer = monero.Wallet_coins(wallet.wptr);
+    monero.Coins_refresh(_coinsPointer!);
+  }
+
+  @override
+  Future<void> updateUTXOs() async {
+    try {
+      utxos.clear();
+
+      _refreshCoins();
+      final count = monero.Coins_getAll_size(_coinsPointer!);
+
+      if (kDebugMode) {
+        print("monero::found_utxo_count=$count");
+      }
+
+      for (int i = 0; i < count; i++) {
+        final coinPointer = monero.Coins_coin(_coinsPointer!, i);
+
+        final hash = monero.CoinsInfo_hash(coinPointer);
+
+        if (hash.isNotEmpty) {
+          final unspent = UTXO(
+            address: monero.CoinsInfo_address(coinPointer),
+            hash: hash,
+            keyImage: monero.CoinsInfo_keyImage(coinPointer),
+            value: monero.CoinsInfo_amount(coinPointer),
+            isFrozen: monero.CoinsInfo_frozen(coinPointer),
+            isUnlocked: monero.CoinsInfo_unlocked(coinPointer),
+            vout: monero.CoinsInfo_internalOutputIndex(coinPointer),
+            spent: monero.CoinsInfo_spent(coinPointer),
+            height: monero.CoinsInfo_blockHeight(coinPointer),
+            coinbase: monero.CoinsInfo_coinbase(coinPointer),
+          );
+
+          utxos.add(unspent);
+        } else {
+          if (kDebugMode) {
+            print("Found empty hash in monero utxo?!");
+          }
+        }
+      }
+      _askForUpdateBalance();
+    } catch (e, s) {
+      if (kDebugMode) {
+        print("$e\n$s");
+      }
+    }
   }
 
   List<MoneroTransactionInfo> _getAllTransactions(dynamic _) =>

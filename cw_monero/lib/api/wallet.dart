@@ -487,13 +487,14 @@ class XMRWallet {
     );
   }
 
-  Future<PendingTransactionDescription> createTransactionSync(
-      {required String address,
-      required String paymentId,
-      required int priorityRaw,
-      String? amount,
-      int accountIndex = 0,
-      List<String> preferredInputs = const []}) async {
+  Future<PendingTransactionDescription> createTransactionSync({
+    required String address,
+    required String paymentId,
+    required int priorityRaw,
+    String? amount,
+    int accountIndex = 0,
+    required List<String> preferredInputs,
+  }) async {
     final amt = amount == null ? 0 : monero.Wallet_amountFromString(amount);
 
     final address_ = address.toNativeUtf8();
@@ -552,12 +553,13 @@ class XMRWallet {
     );
   }
 
-  PendingTransactionDescription createTransactionMultDestSync(
-      {required List<MoneroOutput> outputs,
-      required String paymentId,
-      required int priorityRaw,
-      int accountIndex = 0,
-      List<String> preferredInputs = const []}) {
+  PendingTransactionDescription createTransactionMultDestSync({
+    required List<MoneroOutput> outputs,
+    required String paymentId,
+    required int priorityRaw,
+    int accountIndex = 0,
+    required List<String> preferredInputs,
+  }) {
     final txptr = monero.Wallet_createTransactionMultDest(
       wptr,
       dstAddr: outputs.map((e) => e.address!).toList(),
@@ -614,12 +616,13 @@ class XMRWallet {
     final preferredInputs = args['preferredInputs'] as List<String>;
 
     return createTransactionSync(
-        address: address,
-        paymentId: paymentId,
-        amount: amount,
-        priorityRaw: priorityRaw,
-        accountIndex: accountIndex,
-        preferredInputs: preferredInputs);
+      address: address,
+      paymentId: paymentId,
+      amount: amount,
+      priorityRaw: priorityRaw,
+      accountIndex: accountIndex,
+      preferredInputs: preferredInputs,
+    );
   }
 
   PendingTransactionDescription _createTransactionMultDestSync(Map args) {
@@ -630,40 +633,43 @@ class XMRWallet {
     final preferredInputs = args['preferredInputs'] as List<String>;
 
     return createTransactionMultDestSync(
-        outputs: outputs,
-        paymentId: paymentId,
-        priorityRaw: priorityRaw,
-        accountIndex: accountIndex,
-        preferredInputs: preferredInputs);
+      outputs: outputs,
+      paymentId: paymentId,
+      priorityRaw: priorityRaw,
+      accountIndex: accountIndex,
+      preferredInputs: preferredInputs,
+    );
   }
 
-  Future<PendingTransactionDescription> createTransaction(
-          {required String address,
-          required int priorityRaw,
-          String? amount,
-          String paymentId = '',
-          int accountIndex = 0,
-          List<String> preferredInputs = const []}) async =>
+  Future<PendingTransactionDescription> createTransaction({
+    required String address,
+    required int priorityRaw,
+    String? amount,
+    String paymentId = '',
+    int accountIndex = 0,
+    required List<String> preferredInputs,
+  }) async =>
       _createTransactionSync({
         'address': address,
         'paymentId': paymentId,
         'amount': amount,
         'priorityRaw': priorityRaw,
         'accountIndex': accountIndex,
-        'preferredInputs': preferredInputs
+        'preferredInputs': preferredInputs,
       });
 
-  Future<PendingTransactionDescription> createTransactionMultDest(
-          {required List<MoneroOutput> outputs,
-          required int priorityRaw,
-          String paymentId = '',
-          int accountIndex = 0,
-          List<String> preferredInputs = const []}) async =>
+  Future<PendingTransactionDescription> createTransactionMultDest({
+    required List<MoneroOutput> outputs,
+    required int priorityRaw,
+    String paymentId = '',
+    int accountIndex = 0,
+    required List<String> preferredInputs,
+  }) async =>
       _createTransactionMultDestSync({
         'outputs': outputs,
         'paymentId': paymentId,
         'priorityRaw': priorityRaw,
         'accountIndex': accountIndex,
-        'preferredInputs': preferredInputs
+        'preferredInputs': preferredInputs,
       });
 }

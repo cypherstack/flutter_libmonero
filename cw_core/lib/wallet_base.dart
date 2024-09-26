@@ -1,17 +1,17 @@
-import 'package:mobx/mobx.dart';
 import 'package:cw_core/balance.dart';
+import 'package:cw_core/crypto_currency.dart';
+import 'package:cw_core/currency_for_wallet_type.dart';
+import 'package:cw_core/node.dart';
+import 'package:cw_core/pending_transaction.dart';
+import 'package:cw_core/sync_status.dart';
+import 'package:cw_core/transaction_history.dart';
 import 'package:cw_core/transaction_info.dart';
 import 'package:cw_core/transaction_priority.dart';
+import 'package:cw_core/utxo.dart';
 import 'package:cw_core/wallet_addresses.dart';
-import 'package:flutter/foundation.dart';
 import 'package:cw_core/wallet_info.dart';
-import 'package:cw_core/pending_transaction.dart';
-import 'package:cw_core/transaction_history.dart';
-import 'package:cw_core/currency_for_wallet_type.dart';
-import 'package:cw_core/crypto_currency.dart';
-import 'package:cw_core/sync_status.dart';
-import 'package:cw_core/node.dart';
 import 'package:cw_core/wallet_type.dart';
+import 'package:mobx/mobx.dart';
 
 abstract class WalletBase<
     BalanceType extends Balance,
@@ -50,12 +50,19 @@ abstract class WalletBase<
 
   HistoryType? transactionHistory;
 
+  final List<UTXO> utxos = [];
+
+  Future<void> updateUTXOs();
+
   Future<void> connectToNode(
       {required Node node, required String? socksProxyAddress});
 
   Future<void> startSync();
 
-  Future<PendingTransaction> createTransaction(Object credentials);
+  Future<PendingTransaction> createTransaction(
+    Object credentials, {
+    required List<UTXO>? inputs,
+  });
 
   int calculateEstimatedFee(TransactionPriority priority, int amount);
 

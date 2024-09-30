@@ -382,6 +382,48 @@ abstract class MoneroWalletBase extends WalletBase<MoneroBalance,
   }
 
   @override
+  Future<void> freeze(String keyImage) async {
+    if (keyImage.isEmpty) {
+      throw Exception("Attempted freeze of empty keyImage.");
+    }
+
+    final count = monero.Coins_getAll_size(_coinsPointer!);
+
+    for (int i = 0; i < count; i++) {
+      if (keyImage ==
+          monero.CoinsInfo_keyImage(monero.Coins_coin(_coinsPointer!, i))) {
+        monero.Coins_setFrozen(_coinsPointer!, index: i);
+        return;
+      }
+    }
+
+    throw Exception(
+      "Can't freeze utxo for the gen keyImage if it cannot be found. *points at temple*",
+    );
+  }
+
+  @override
+  Future<void> thaw(String keyImage) async {
+    if (keyImage.isEmpty) {
+      throw Exception("Attempted thaw of empty keyImage.");
+    }
+
+    final count = monero.Coins_getAll_size(_coinsPointer!);
+
+    for (int i = 0; i < count; i++) {
+      if (keyImage ==
+          monero.CoinsInfo_keyImage(monero.Coins_coin(_coinsPointer!, i))) {
+        monero.Coins_thaw(_coinsPointer!, index: i);
+        return;
+      }
+    }
+
+    throw Exception(
+      "Can't thaw utxo for the gen keyImage if it cannot be found. *points at temple*",
+    );
+  }
+
+  @override
   Future<void> updateUTXOs() async {
     try {
       utxos.clear();

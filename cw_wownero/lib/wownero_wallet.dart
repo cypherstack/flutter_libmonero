@@ -375,47 +375,51 @@ abstract class WowneroWalletBase extends WalletBase<WowneroBalance,
     return wallet.getSubaddressLabel(accountIndex, addressIndex);
   }
 
-  Future<void> freeze(String keyImage) async {
-    // TODO: replace assert with proper error
-    assert(keyImage.isNotEmpty);
-
-    final count = wownero.Coins_getAll_size(_coinsPointer!);
-
-    for (int i = 0; i < count; i++) {
-      final coinPointer = wownero.Coins_coin(_coinsPointer!, i);
-
-      if (keyImage == wownero.CoinsInfo_keyImage(coinPointer)) {
-        wownero.Coins_setFrozen(coinPointer, index: i);
-        return;
-      }
-    }
-
-    throw Exception(
-        "Can't freeze utxo for the gen keyImage if it cannot be found. *points at temple* ");
-  }
-
-  Future<void> thaw(String keyImage) async {
-    // TODO: replace assert with proper error
-    assert(keyImage.isNotEmpty);
-
-    final count = wownero.Coins_getAll_size(_coinsPointer!);
-
-    for (int i = 0; i < count; i++) {
-      final coinPointer = wownero.Coins_coin(_coinsPointer!, i);
-
-      if (keyImage == wownero.CoinsInfo_keyImage(coinPointer)) {
-        wownero.Coins_thaw(coinPointer, index: i);
-        return;
-      }
-    }
-
-    throw Exception(
-        "Can't thaw utxo for the gen keyImage if it cannot be found. *points at temple* ");
-  }
-
   void _refreshCoins() {
     _coinsPointer = wownero.Wallet_coins(wallet.wptr);
     wownero.Coins_refresh(_coinsPointer!);
+  }
+
+  @override
+  Future<void> freeze(String keyImage) async {
+    if (keyImage.isEmpty) {
+      throw Exception("Attempted freeze of empty keyImage.");
+    }
+
+    final count = wownero.Coins_getAll_size(_coinsPointer!);
+
+    for (int i = 0; i < count; i++) {
+      if (keyImage ==
+          wownero.CoinsInfo_keyImage(wownero.Coins_coin(_coinsPointer!, i))) {
+        wownero.Coins_setFrozen(_coinsPointer!, index: i);
+        return;
+      }
+    }
+
+    throw Exception(
+      "Can't freeze utxo for the gen keyImage if it cannot be found. *points at temple*",
+    );
+  }
+
+  @override
+  Future<void> thaw(String keyImage) async {
+    if (keyImage.isEmpty) {
+      throw Exception("Attempted thaw of empty keyImage.");
+    }
+
+    final count = wownero.Coins_getAll_size(_coinsPointer!);
+
+    for (int i = 0; i < count; i++) {
+      if (keyImage ==
+          wownero.CoinsInfo_keyImage(wownero.Coins_coin(_coinsPointer!, i))) {
+        wownero.Coins_thaw(_coinsPointer!, index: i);
+        return;
+      }
+    }
+
+    throw Exception(
+      "Can't thaw utxo for the gen keyImage if it cannot be found. *points at temple*",
+    );
   }
 
   @override

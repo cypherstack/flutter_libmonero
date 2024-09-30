@@ -52,6 +52,10 @@ abstract class WalletBase<
 
   final List<UTXO> utxos = [];
 
+
+  Future<void> freeze(String keyImage);
+  Future<void> thaw(String keyImage);
+
   Future<void> updateUTXOs();
 
   Future<void> connectToNode(

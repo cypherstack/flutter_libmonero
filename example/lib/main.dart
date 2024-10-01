@@ -12,7 +12,6 @@ import 'package:cw_core/wallet_credentials.dart';
 import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_service.dart';
 import 'package:cw_core/wallet_type.dart';
-import 'package:cw_wownero/api/wallet.dart';
 import 'package:cw_wownero/pending_wownero_transaction.dart';
 import 'package:cw_wownero/wownero_wallet.dart';
 import 'package:flutter/material.dart';
@@ -56,7 +55,6 @@ void main() async {
   Hive.registerAdapter(UnspentCoinsInfoAdapter());
   // }
 
-  wownero.onStartup();
   final _walletInfoSource = await Hive.openBox<WalletInfo>(WalletInfo.boxName);
   walletService = wownero.createWowneroWalletService(_walletInfoSource);
   storage = FlutterSecureStorage();
@@ -95,10 +93,10 @@ void main() async {
 
     _walletCreationService = WalletCreationService(
       secureStorage: storage,
-      walletService: walletService,
-      keyService: keysStorage,
+      walletService: walletService!,
+      keyService: keysStorage!,
+      type: WalletType.wownero,
     );
-    _walletCreationService.changeWalletType();
     // To restore from a seed
     final wallet = await
         // _walletCreationService.create(credentials);
@@ -121,7 +119,8 @@ void main() async {
   //     "${walletBase!.id} walletinfo: ${toStringForinfo(walletBase!.walletInfo)} type: ${walletBase!.type} balance: "
   //     "${walletBase!.balance.entries.first.value.available} currency: ${walletBase!.currency}");
   await walletBase?.connectToNode(
-      node: Node(uri: "eu-west-2.wow.xmr.pm:34568", type: WalletType.wownero));
+      node: Node(uri: "eu-west-2.wow.xmr.pm:34568", type: WalletType.wownero),
+      socksProxyAddress: null);
   walletBase!.rescan(height: credentials.height);
   walletBase!.getNodeHeight();
   runApp(MyApp());
@@ -191,8 +190,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    print(getSyncingHeight());
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+    print("Syncing height: ${walletBase?.wallet.getSyncingHeight()}");
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
@@ -227,7 +225,7 @@ class _MyAppState extends State<MyApp> {
                           priority: wownero.getDefaultTransactionPriority());
                   loggerPrint(tmp);
                   Future<PendingTransaction> awaitPendingTransaction =
-                      walletBase!.createTransaction(tmp);
+                      walletBase!.createTransaction(tmp, inputs: null);
                   loggerPrint(output);
                   PendingWowneroTransaction pendingWowneroTransaction =
                       await awaitPendingTransaction

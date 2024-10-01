@@ -14,7 +14,7 @@ abstract class WalletService<N extends WalletCredentials,
 
   Future<WalletBase> openWallet(String name, String password);
 
-  Future<bool> isWalletExit(String name);
+  Future<bool> isWalletExist(String name);
 
   Future<void> remove(String wallet);
 }

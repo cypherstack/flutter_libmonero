@@ -1,10 +1,9 @@
-import 'package:cw_core/transaction_info.dart';
+import 'package:cw_core/format_amount.dart';
 import 'package:cw_core/monero_amount_format.dart';
-import 'package:cw_monero/api/structs/transaction_info_row.dart';
 import 'package:cw_core/parseBoolFromString.dart';
 import 'package:cw_core/transaction_direction.dart';
-import 'package:cw_core/format_amount.dart';
-import 'package:cw_monero/api/transaction_history.dart';
+import 'package:cw_core/transaction_info.dart';
+import 'package:cw_monero/api/structs/transaction_info_row.dart';
 
 class MoneroTransactionInfo extends TransactionInfo {
   MoneroTransactionInfo(
@@ -18,8 +17,10 @@ class MoneroTransactionInfo extends TransactionInfo {
       this.addressIndex,
       this.fee);
 
-  MoneroTransactionInfo.fromMap(Map map)
-      : id = (map['hash'] ?? '') as String,
+  MoneroTransactionInfo.fromMap(
+    Map map,
+    String Function(String txid) getTxKey,
+  )   : id = (map['hash'] ?? '') as String,
         height = (map['height'] ?? 0) as int,
         direction =
             parseTransactionDirectionFromNumber(map['direction'] as String) ??
@@ -40,8 +41,10 @@ class MoneroTransactionInfo extends TransactionInfo {
     confirmations = map['confirmations'] as int?;
   }
 
-  MoneroTransactionInfo.fromRow(TransactionInfoRow row)
-      : id = row.getHash(),
+  MoneroTransactionInfo.fromRow(
+    TransactionInfoRow row,
+    String Function(String txid) getTxKey,
+  )   : id = row.getHash(),
         height = row.blockHeight,
         direction = parseTransactionDirectionFromInt(row.direction) ??
             TransactionDirection.incoming,

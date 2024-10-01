@@ -1,7 +1,6 @@
 name: flutter_libmonero
 description: A new flutter plugin project.
 version: 0.0.1
-author:
 homepage:
 
 environment:
@@ -14,7 +13,7 @@ dependencies:
   ffi: ^2.0.1
   flutter_secure_storage: ^8.0.0
 #  shared_preferences: ^2.2.0
-  archive: ^3.1.6
+#  archive: ^3.6.1
 #  mobx: ^2.0.7
   cw_core:
     path: ./cw_core

@@ -1,15 +1,16 @@
 import 'package:cw_core/account.dart' as wownero_account;
+import 'package:cw_core/account.dart';
 import 'package:cw_core/balance.dart';
 import 'package:cw_core/get_height_by_date.dart';
 import 'package:cw_core/monero_transaction_priority.dart';
 import 'package:cw_core/output_info.dart';
+import 'package:cw_core/sub_address.dart';
 import 'package:cw_core/transaction_history.dart';
 import 'package:cw_core/transaction_info.dart';
 import 'package:cw_core/transaction_priority.dart';
 import 'package:cw_core/wallet_credentials.dart';
 import 'package:cw_core/wallet_info.dart';
 import 'package:cw_core/wallet_service.dart';
-import 'package:cw_wownero/api/wallet.dart' as wownero_wallet_api;
 //import 'package:cw_wownero/mnemonics/english.dart';
 import 'package:cw_wownero/mnemonics/english14.dart';
 import 'package:cw_wownero/mnemonics/english25.dart';
@@ -26,20 +27,6 @@ import 'package:monero/wownero.dart' as wownerodart;
 part 'cw_wownero.dart';
 
 Wownero wownero = CWWownero();
-
-class Account {
-  Account({this.id, this.label});
-  final int? id;
-  final String? label;
-}
-
-class Subaddress {
-  Subaddress({this.id, this.accountId, this.label, this.address});
-  final int? id;
-  final int? accountId;
-  final String? label;
-  final String? address;
-}
 
 class WowneroBalance extends Balance {
   WowneroBalance({required this.fullBalance, required this.unlockedBalance})
@@ -90,7 +77,8 @@ abstract class Wownero {
 
   WowneroWalletDetails getWowneroWalletDetails(Object wallet);
 
-  String getTransactionAddress(Object wallet, int accountIndex, int addressIndex);
+  String getTransactionAddress(
+      Object wallet, int accountIndex, int addressIndex);
 
   int getHeightByDate({DateTime? date});
 
@@ -126,7 +114,6 @@ abstract class Wownero {
   int formatterWowneroParseAmount({String? amount});
   Account getCurrentAccount(Object wallet);
   void setCurrentAccount(Object wallet, int id, String label);
-  void onStartup();
   int? getTransactionInfoAccountId(TransactionInfo tx);
   WalletService createWowneroWalletService(Box<WalletInfo> walletInfoSource);
 }

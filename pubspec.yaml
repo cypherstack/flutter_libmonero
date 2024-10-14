@@ -12,22 +12,15 @@ dependencies:
     sdk: flutter
   ffi: ^2.0.1
   flutter_secure_storage: ^8.0.0
-#  shared_preferences: ^2.2.0
-#  archive: ^3.6.1
-#  mobx: ^2.0.7
-  cw_core:
-    path: ./cw_core
-
-  cw_monero:
-    path: ./cw_monero
-
-  cw_wownero:
-    path: ./cw_wownero
+  hive: ^2.2.3
 
   stack_wallet_backup:
     git:
       url: https://github.com/cypherstack/stack_wallet_backup.git
       ref: e4b08d2b8965a5ae49bd57f598fa9011dd0c25e9
+
+  monero:
+    path: scripts/monero_c/impls/monero.dart
 
 dev_dependencies:
   flutter_test:

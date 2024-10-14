@@ -1,1 +1,0 @@
-double cryptoAmountToDouble({required num amount, required num divider}) => amount / divider;

@@ -1,3 +1,0 @@
-mixin Keyable {
-  dynamic keyIndex;
-}

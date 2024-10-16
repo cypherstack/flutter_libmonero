@@ -30,3 +30,6 @@ popd
 
 unxz -f ../monero_c/release/monero/x86_64-linux-gnu_libwallet2_api_c.so.xz
 unxz -f ../monero_c/release/wownero/x86_64-linux-gnu_libwallet2_api_c.so.xz
+
+cp ../monero_c/release/monero/x86_64-linux-gnu_libwallet2_api_c.so ../../linux/monero_libwallet2_api_c.so
+cp ../monero_c/release/wownero/x86_64-linux-gnu_libwallet2_api_c.so ../../linux/wownero_libwallet2_api_c.so

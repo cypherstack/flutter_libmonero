@@ -77,10 +77,6 @@
 # External libs
 monero_android/
 android/app/.externalNativeBuild/
-cw_monero/ios/External/
-cw_monero/macos/External/
-cw_monero/cw_monero/android/.externalNativeBuild/
-cw_monero/cw_monero/android/.cxx/
 
 # Generated dart files
 #**/*.g.dart
@@ -111,19 +107,6 @@ ios/Flutter/.last_build_id
 *.sublime-project
 
 shared_external/**
-cw_shared_external/ios/External/
-cw_shared_external/macos/External/
-# cw_haven/**
-cw_haven/ios/External/
-cw_haven/android/.externalNativeBuild/
-cw_haven/android/.cxx/
-# cw_wownero/**
-cw_wownero/ios/External/
-cw_wownero/android/.externalNativeBuild/
-cw_wownero/android/.cxx/
-
-lib/bitcoin/bitcoin.dart
-#lib/monero/monero.dart
 
 ios/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_180.png
 ios/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_120.png
@@ -153,3 +136,7 @@ scripts/windows/build
 scripts/windows/cache
 
 lib/git_versions.dart
+
+# could maybe be unignored in the future?
+linux/monero_libwallet2_api_c.so
+linux/wownero_libwallet2_api_c.so

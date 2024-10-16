@@ -274,8 +274,8 @@ packages:
     dependency: transitive
     description:
       path: "."
-      ref: e4b08d2b8965a5ae49bd57f598fa9011dd0c25e9
-      resolved-ref: e4b08d2b8965a5ae49bd57f598fa9011dd0c25e9
+      ref: "5efe8f8f259317d32b6f037cf91f62e06125c040"
+      resolved-ref: "5efe8f8f259317d32b6f037cf91f62e06125c040"
       url: "https://github.com/cypherstack/stack_wallet_backup.git"
     source: git
     version: "0.0.1"

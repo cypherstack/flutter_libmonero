@@ -58,9 +58,20 @@ unxz -f ../monero_c/release/wownero/armv7a-linux-androideabi_libwallet2_api_c.so
 unxz -f ../monero_c/release/monero/aarch64-linux-android_libwallet2_api_c.so.xz
 unxz -f ../monero_c/release/wownero/aarch64-linux-android_libwallet2_api_c.so.xz
 
-ln -s $(realpath ../monero_c/release/monero/aarch64-linux-android_libwallet2_api_c.so) ../../../../android/app/src/main/jniLibs/arm64-v8a/libmonero_libwallet2_api_c.so || true
-ln -s $(realpath ../monero_c/release/wownero/aarch64-linux-android_libwallet2_api_c.so) ../../../../android/app/src/main/jniLibs/arm64-v8a/libwownero_libwallet2_api_c.so || true
-ln -s $(realpath ../monero_c/release/monero/armv7a-linux-androideabi_libwallet2_api_c.so) ../../../../android/app/src/main/jniLibs/armeabi-v7a/libmonero_libwallet2_api_c.so || true
-ln -s $(realpath ../monero_c/release/wownero/armv7a-linux-androideabi_libwallet2_api_c.so) ../../../../android/app/src/main/jniLibs/armeabi-v7a/libwownero_libwallet2_api_c.so || true
-ln -s $(realpath ../monero_c/release/monero/x86_64-linux-android_libwallet2_api_c.so) ../../../../android/app/src/main/jniLibs/x86_64/libmonero_libwallet2_api_c.so || true
-ln -s $(realpath ../monero_c/release/wownero/x86_64-linux-android_libwallet2_api_c.so) ../../../../android/app/src/main/jniLibs/x86_64/libwownero_libwallet2_api_c.so || true
+#ln -s $(realpath ../monero_c/release/monero/aarch64-linux-android_libwallet2_api_c.so) ../../../../android/app/src/main/jniLibs/arm64-v8a/libmonero_libwallet2_api_c.so || true
+#ln -s $(realpath ../monero_c/release/wownero/aarch64-linux-android_libwallet2_api_c.so) ../../../../android/app/src/main/jniLibs/arm64-v8a/libwownero_libwallet2_api_c.so || true
+#ln -s $(realpath ../monero_c/release/monero/armv7a-linux-androideabi_libwallet2_api_c.so) ../../../../android/app/src/main/jniLibs/armeabi-v7a/libmonero_libwallet2_api_c.so || true
+#ln -s $(realpath ../monero_c/release/wownero/armv7a-linux-androideabi_libwallet2_api_c.so) ../../../../android/app/src/main/jniLibs/armeabi-v7a/libwownero_libwallet2_api_c.so || true
+#ln -s $(realpath ../monero_c/release/monero/x86_64-linux-android_libwallet2_api_c.so) ../../../../android/app/src/main/jniLibs/x86_64/libmonero_libwallet2_api_c.so || true
+#ln -s $(realpath ../monero_c/release/wownero/x86_64-linux-android_libwallet2_api_c.so) ../../../../android/app/src/main/jniLibs/x86_64/libwownero_libwallet2_api_c.so || true
+
+mkdir -p ../../android/src/main/jniLibs/arm64-v8a
+mkdir -p ../../android/src/main/jniLibs/armeabi-v7a
+mkdir -p ../../android/src/main/jniLibs/x86_64
+
+cp ../monero_c/release/monero/aarch64-linux-android_libwallet2_api_c.so ../../android/src/main/jniLibs/arm64-v8a/libmonero_libwallet2_api_c.so
+cp ../monero_c/release/wownero/aarch64-linux-android_libwallet2_api_c.so ../../android/src/main/jniLibs/arm64-v8a/libwownero_libwallet2_api_c.so
+cp ../monero_c/release/monero/armv7a-linux-androideabi_libwallet2_api_c.so ../../android/src/main/jniLibs/armeabi-v7a/libmonero_libwallet2_api_c.so
+cp ../monero_c/release/wownero/armv7a-linux-androideabi_libwallet2_api_c.so ../../android/src/main/jniLibs/armeabi-v7a/libwownero_libwallet2_api_c.so
+cp ../monero_c/release/monero/x86_64-linux-android_libwallet2_api_c.so ../../android/src/main/jniLibs/x86_64/libmonero_libwallet2_api_c.so
+cp ../monero_c/release/wownero/x86_64-linux-android_libwallet2_api_c.so ../../android/src/main/jniLibs/x86_64/libwownero_libwallet2_api_c.so

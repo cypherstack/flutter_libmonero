@@ -1,5 +1,5 @@
-group 'com.example.flutter_libmonero'
-version '1.0-SNAPSHOT'
+group = "com.example.flutter_libmonero"
+version = "1.0-SNAPSHOT"
 
 buildscript {
     ext.kotlin_version = "1.8.22"
@@ -30,7 +30,6 @@ android {
     }
 
     compileSdk = 34
-    ndkVersion = "21.1.6352462"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -47,8 +46,7 @@ android {
     }
 
     defaultConfig {
-        minSdk 21
-        ndkVersion = "21.1.6352462"
+        minSdk = 21
     }
 
     dependencies {
@@ -61,9 +59,9 @@ android {
             useJUnitPlatform()
 
             testLogging {
-                events "passed", "skipped", "failed", "standardOut", "standardError"
-                outputs.upToDateWhen {false}
-                showStandardStreams = true
+               events "passed", "skipped", "failed", "standardOut", "standardError"
+               outputs.upToDateWhen {false}
+               showStandardStreams = true
             }
         }
     }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:core' as core;
 import 'dart:core';
 import 'dart:math';
@@ -5,10 +6,21 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_libmonero/flutter_libmonero.dart';
 import 'package:flutter_libmonero_example/util.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-FlutterSecureStorage? storage;
 WowneroWallet? wallet;
+
+void addListener(WowneroWallet wallet) {
+  wallet.addListener(WalletListener(
+    onSyncingUpdate: onSyncingUpdate,
+    onError: (e, s) {
+      Logging.log?.e("onSyncingUpdate failed", error: e, stackTrace: s);
+    },
+    // onNewBlock: (int height) {},
+    // onBalancesChanged: (int newBalance, int newUnlockedBalance) {},
+  ));
+
+  wallet.startListeners();
+}
 
 Future<void> runRestore() async {
   try {
@@ -25,32 +37,25 @@ Future<void> runRestore() async {
       restoreHeight: height,
     );
 
-    final success = await wallet?.initConnection(
+    final success = await wallet?.connect(
       daemonAddress: "eu-west-2.wow.xmr.pm:34568",
       trusted: true,
       useSSL: true,
     );
 
-    loggerPrint("initConnection success=$success");
-
-    final address = wallet?.getAddress();
-    loggerPrint(address);
+    Logging.log?.i("connect success=$success");
 
     // wallet?.rescan
-    wallet?.startRescan(null, height);
-    wallet?.startRefreshAsync();
-
-    loggerPrint("${wallet?.getSeed()}");
-    await wallet?.refreshTransactions();
+    unawaited(wallet?.rescanBlockchain());
+    wallet?.startSyncing();
   } catch (e, s) {
-    loggerPrint(e);
-    loggerPrint(s);
+    Logging.log?.e("restore failed", error: e, stackTrace: s);
   }
 }
 
 Future<void> tx() async {
   try {
-    final pendingWowneroTransaction = await wallet!.createTransaction(
+    final pendingWowneroTransaction = await wallet!.createTx(
       address:
           "45ssGbDbLTnjdhpAm89PDpHpj6r5xWXBwL6Bh8hpy3PUcEnLgroo9vFJ9UE3HsAT5TTSk3Cqe2boJQHePAXisQSu9i6tz5A",
       paymentId: "",
@@ -59,24 +64,22 @@ Future<void> tx() async {
       preferredInputs: [],
     );
 
-    loggerPrint(pendingWowneroTransaction);
-    loggerPrint(pendingWowneroTransaction.hash);
-    loggerPrint(pendingWowneroTransaction.amount);
-    loggerPrint(pendingWowneroTransaction.fee);
+    Logging.log?.i(pendingWowneroTransaction);
+    Logging.log?.i(pendingWowneroTransaction.txid);
+    Logging.log?.i(pendingWowneroTransaction.amount);
+    Logging.log?.i(pendingWowneroTransaction.fee);
 
-    loggerPrint(pendingWowneroTransaction.pointerAddress);
+    Logging.log?.i(pendingWowneroTransaction.pointerAddress);
 
-    wallet!.commitTransaction(
-      pendingTransaction: pendingWowneroTransaction,
+    await wallet!.commitTx(
+      pendingWowneroTransaction,
     );
 
-    loggerPrint(
-      "transaction ${pendingWowneroTransaction.hash} has been sent",
+    Logging.log?.i(
+      "transaction ${pendingWowneroTransaction.txid} has been sent",
     );
   } catch (e, s) {
-    loggerPrint("error");
-    loggerPrint(e);
-    loggerPrint(s);
+    Logging.log?.e("tx failed", error: e, stackTrace: s);
   }
 }
 
@@ -99,13 +102,13 @@ class _WowneroExampleState extends State<WowneroExample> {
               TextButton(
                   onPressed: () async {
                     final address = wallet?.getAddress();
-                    loggerPrint("address: $address");
+                    Logging.log?.i("address: $address");
 
                     final unlocked = wallet?.getUnlockedBalance();
-                    final full = wallet?.getFullBalance();
+                    final full = wallet?.getBalance();
 
-                    loggerPrint("Full balance: $full");
-                    loggerPrint("Unlocked balance: $unlocked");
+                    Logging.log?.i("Full balance: $full");
+                    Logging.log?.i("Unlocked balance: $unlocked");
                   },
                   child: Text("balance")),
               TextButton(

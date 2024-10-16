@@ -5,6 +5,6 @@ enum TransactionPriority {
   high(3),
   last(4);
 
-  final int value;
   const TransactionPriority(this.value);
+  final int value;
 }

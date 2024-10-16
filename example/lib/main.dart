@@ -11,6 +11,8 @@ import 'wownero_example.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  Logging.useLogger = true;
+
   runApp(
     MaterialApp(
       home: MyApp(),

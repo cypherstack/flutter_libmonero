@@ -4,7 +4,6 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   flutter_libmonero
-  flutter_secure_storage_linux
   stack_wallet_backup
 )
 

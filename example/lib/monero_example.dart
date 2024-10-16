@@ -4,40 +4,22 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_libmonero/flutter_libmonero.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'util.dart';
 
-FlutterSecureStorage? storage;
 MoneroWallet? wallet;
 
-Timer? t;
-
-Watcher? watcher;
-
-void setWatcher(Wallet wallet) {
-  watcher = Watcher(
-    wallet: wallet,
-    pollingInterval: Duration(seconds: 1),
-    onNewTransaction: () {
-      loggerPrint("Watcher.onNewTransaction() triggered");
-    },
-    onSyncingUpdate: (syncingHeight, nodeHeight) {
-      print("============================================================");
-      loggerPrint("syncingHeight: $syncingHeight");
-      loggerPrint("nodeHeight: $nodeHeight");
-      loggerPrint("remaining: ${nodeHeight - syncingHeight}");
-      loggerPrint(
-          "sync percent: ${(syncingHeight / nodeHeight * 100).toStringAsFixed(2)}");
-      print("============================================================");
-    },
+void addListener(MoneroWallet wallet) {
+  wallet.addListener(WalletListener(
+    onSyncingUpdate: onSyncingUpdate,
     onError: (e, s) {
-      loggerPrint("error: $e");
-      loggerPrint("stack trace: $s");
+      Logging.log?.e("onSyncingUpdate failed", error: e, stackTrace: s);
     },
-  );
+    // onNewBlock: (int height) {},
+    // onBalancesChanged: (int newBalance, int newUnlockedBalance) {},
+  ));
 
-  watcher?.start();
+  wallet.startListeners();
 }
 
 Future<void> createWallet() async {
@@ -53,73 +35,43 @@ Future<void> createWallet() async {
       seedType: MoneroSeedType.sixteen,
     );
 
-    final success = await wallet?.initConnection(
+    final success = await wallet?.connect(
       daemonAddress: "monero.stackwallet.com:18081",
       trusted: true,
       useSSL: true,
     );
 
-    loggerPrint("initConnection success=$success");
-
-    final address = wallet?.getAddress();
-    loggerPrint(address);
-
-    // ???
-    // wallet?.setRefreshFromBlockHeight(height: height);
-    // wallet?.startRescan();
-    // wallet?.startRefreshAsync();
-
-    loggerPrint("${wallet?.getSeed()}");
-    await wallet?.refreshTransactions();
+    Logging.log?.i("connect success=$success");
+    addListener(wallet!);
+    wallet?.startAutoSaving();
   } catch (e, s) {
-    loggerPrint(e);
-    loggerPrint(s);
+    Logging.log?.e("create failed", error: e, stackTrace: s);
   }
 }
 
-Future<void> runRestore() async {
+Future<void> openWallet() async {
   try {
-    final name = "namee${Random().nextInt(10000000)}";
+    final name = "namee5046961";
 
     final path = await pathForWallet(name: name, type: "monero");
 
-    // final mnemonic = ("water " * 25).trim();
-    final mnemonic =
-        "ambush casket goodbye bimonthly arrow iris devoid mechanic hefty "
-        "estate cowl listen ongoing joining fierce oust enlist exult "
-        "hesitate daft sovereign otherwise inquest italics mechanic";
-    final height = 2800000; // ~ jan 2023
-
     // To restore from a seed
-    wallet = await MoneroWallet.restoreWalletFromSeed(
+    wallet = MoneroWallet.loadWallet(
       path: path,
       password: "lol",
-      seed: mnemonic,
-      restoreHeight: height,
     );
 
-    final success = await wallet?.initConnection(
+    final success = await wallet?.connect(
       daemonAddress: "monero.stackwallet.com:18081",
       trusted: true,
       useSSL: true,
     );
 
-    loggerPrint("initConnection success=$success");
-
-    final address = wallet?.getAddress();
-    loggerPrint(address);
-
-    // wallet?.rescan
-    wallet?.startRescan(null, height);
-    wallet?.startRefreshAsync();
-
-    loggerPrint("${wallet?.getSeed()}");
-    await wallet?.refreshTransactions();
-
-    setWatcher(wallet!);
+    Logging.log?.i("connect success=$success");
+    addListener(wallet!);
+    wallet?.startAutoSaving();
   } catch (e, s) {
-    loggerPrint(e);
-    loggerPrint(s);
+    Logging.log?.e("open failed", error: e, stackTrace: s);
   }
 }
 
@@ -131,6 +83,56 @@ class MoneroExample extends StatefulWidget {
 class _MoneroExampleState extends State<MoneroExample> {
   Timer? timer;
 
+  final mnemonicController = TextEditingController();
+  final restoreHeightController = TextEditingController();
+
+  Future<void> runRestore() async {
+    try {
+      if (mnemonicController.text.isEmpty) {
+        Logging.log?.e("Missing mnemonic!");
+        return;
+      }
+
+      final name = "namee${Random().nextInt(10000000)}";
+
+      final path = await pathForWallet(name: name, type: "monero");
+
+      final mnemonic = mnemonicController.text;
+      final height = int.tryParse(restoreHeightController.text);
+
+      // To restore from a seed
+      wallet = await MoneroWallet.restoreWalletFromSeed(
+        path: path,
+        password: "lol",
+        seed: mnemonic,
+        restoreHeight: height ?? 0,
+      );
+
+      final success = await wallet?.connect(
+        daemonAddress: "monero.stackwallet.com:18081",
+        trusted: true,
+        useSSL: true,
+      );
+
+      addListener(wallet!);
+      wallet?.startAutoSaving();
+      Logging.log?.i("connect success=$success");
+
+      unawaited(wallet?.rescanBlockchain());
+
+      wallet?.startSyncing();
+    } catch (e, s) {
+      Logging.log?.e("restore failed", error: e, stackTrace: s);
+    }
+  }
+
+  @override
+  void dispose() {
+    mnemonicController.dispose();
+    restoreHeightController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -140,10 +142,28 @@ class _MoneroExampleState extends State<MoneroExample> {
       body: Center(
         child: ListView(
           children: [
+            Column(
+              children: [
+                TextButton(
+                  onPressed: runRestore,
+                  child: Text(
+                    "run restore",
+                  ),
+                ),
+                TextField(
+                  controller: mnemonicController,
+                ),
+                TextField(
+                  keyboardType: TextInputType.number,
+                  controller: restoreHeightController,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             TextButton(
-              onPressed: runRestore,
+              onPressed: openWallet,
               child: Text(
-                "run restore",
+                "run open",
               ),
             ),
             // TextButton(
@@ -198,36 +218,35 @@ class _MoneroExampleState extends State<MoneroExample> {
             //   },
             //   child: Text("send Transaction"),
             // ),
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.check_circle_outline,
-                    color: Colors.green,
-                    size: 60,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Text('Result: ${wallet?.getNodeHeight()}'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      final tcCount = wallet?.transactionCount();
 
-                      print("=============================================");
-                      print("countOfTransactions: $tcCount");
-                      print(
-                          "wallet?.getCurrentHeight(): ${wallet?.getCurrentHeight()}");
-                      print(
-                          "wallet?.getNodeHeight(): ${wallet?.getNodeHeight()}");
-
-                      print("=============================================");
-                    },
-                    child: Text("Click"),
-                  ),
-                ],
-              ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () async {
+                wallet?.startSyncing();
+              },
+              child: Text("Start Syncing"),
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () async {
+                wallet?.stopSyncing();
+                await wallet?.save();
+              },
+              child: Text("Stop Syncing"),
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () async {
+                unawaited(wallet?.rescanBlockchain());
+              },
+              child: Text("Start Rescan"),
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () {
+                printWalletInfo(wallet!);
+              },
+              child: Text("Print Info"),
             ),
           ],
         ),

@@ -11,7 +11,6 @@ dependencies:
   flutter:
     sdk: flutter
   ffi: ^2.0.1
-  flutter_secure_storage: ^8.0.0
   hive: ^2.2.3
 
   stack_wallet_backup:
@@ -21,6 +20,7 @@ dependencies:
 
   monero:
     path: scripts/monero_c/impls/monero.dart
+  logger: ^2.4.0
 
 dev_dependencies:
   flutter_test:

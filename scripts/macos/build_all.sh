@@ -30,5 +30,15 @@ popd
 unxz -f ../monero_c/release/monero/host-apple-darwin_libwallet2_api_c.dylib.xz
 unxz -f ../monero_c/release/wownero/host-apple-darwin_libwallet2_api_c.dylib.xz
 
-ln -s $(realpath ../monero_c/release/monero/host-apple-darwin_libwallet2_api_c.dylib) ../../../../macos/monero_libwallet2_api_c.dylib || true
-ln -s $(realpath ../monero_c/release/wownero/host-apple-darwin_libwallet2_api_c.dylib) ../../../../macos/wownero_libwallet2_api_c.dylib || true
+ # ==================== Monero ======================================================================
+ FRAMEWORK_NAME="MoneroWallet"
+ DYLIB_PATH=$(realpath "../monero_c/release/monero/host-apple-darwin_libwallet2_api_c.dylib")
+ ./gen_fw.sh ${FRAMEWORK_NAME} ${DYLIB_PATH}
+ echo "Framework created at ${OUTPUT_DIR}/${FRAMEWORK_NAME}.framework"
+
+
+ # ==================== Wownero =====================================================================
+ FRAMEWORK_NAME="WowneroWallet"
+ DYLIB_PATH=$(realpath "../monero_c/release/wownero/host-apple-darwin_libwallet2_api_c.dylib")
+ ./gen_fw.sh ${FRAMEWORK_NAME} ${DYLIB_PATH}
+ echo "Framework created at ${OUTPUT_DIR}/${FRAMEWORK_NAME}.framework"

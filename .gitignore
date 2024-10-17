@@ -141,3 +141,4 @@ lib/git_versions.dart
 linux/monero_libwallet2_api_c.so
 linux/wownero_libwallet2_api_c.so
 android/src/main/jniLibs/**
+macos/Frameworks

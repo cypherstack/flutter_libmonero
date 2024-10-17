@@ -4,8 +4,8 @@ version: 0.0.1
 homepage:
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
-  flutter: ">=3.10.3"
+  sdk: ^3.5.3
+  flutter: '>=3.3.0'
 
 dependencies:
   flutter:
@@ -25,10 +25,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.1
-#  build_runner: ^2.1.7
-#  hive_generator: ^1.1.2
-#  mobx_codegen: ^2.0.6
+  flutter_lints: ^4.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -47,6 +44,10 @@ flutter:
       ios:
         pluginClass: FlutterLibmoneroPlugin
       linux:
+        pluginClass: FlutterLibmoneroPlugin
+      macos:
+        pluginClass: FlutterLibmoneroPlugin
+      windows:
         pluginClass: FlutterLibmoneroPlugin
 
   # To add assets to your plugin package, add an assets section, like this:

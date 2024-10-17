@@ -23,6 +23,7 @@ then
     git submodule update --init --force --recursive
     ./apply_patches.sh monero
     ./apply_patches.sh wownero
+    git apply "../../patches/monero_c_dart/monero_c_dart_darwin_use_frameworks.patch"
 else
     cd monero_c
 fi

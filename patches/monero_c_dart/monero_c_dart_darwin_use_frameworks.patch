@@ -1,0 +1,42 @@
+Subject: [PATCH] Use frameworks
+---
+Index: impls/monero.dart/lib/wownero.dart
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/impls/monero.dart/lib/wownero.dart b/impls/monero.dart/lib/wownero.dart
+--- a/impls/monero.dart/lib/wownero.dart	(revision 939040032f6e22529ccb6b5f54d9c48fc94db3d6)
++++ b/impls/monero.dart/lib/wownero.dart	(date 1729135882447)
+@@ -84,8 +84,9 @@
+ WowneroC? lib;
+ String libPath = (() {
+   if (Platform.isWindows) return 'wownero_libwallet2_api_c.dll';
+-  if (Platform.isMacOS) return 'wownero_libwallet2_api_c.dylib';
+-  if (Platform.isIOS) return 'WowneroWallet.framework/WowneroWallet';
++  if (Platform.isIOS || Platform.isMacOS) {
++    return 'WowneroWallet.framework/WowneroWallet';
++  }
+   if (Platform.isAndroid) return 'libwownero_libwallet2_api_c.so';
+   return 'wownero_libwallet2_api_c.so';
+ })();
+Index: impls/monero.dart/lib/monero.dart
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/impls/monero.dart/lib/monero.dart b/impls/monero.dart/lib/monero.dart
+--- a/impls/monero.dart/lib/monero.dart	(revision 939040032f6e22529ccb6b5f54d9c48fc94db3d6)
++++ b/impls/monero.dart/lib/monero.dart	(date 1729135878781)
+@@ -84,8 +84,9 @@
+ MoneroC? lib;
+ String libPath = (() {
+   if (Platform.isWindows) return 'monero_libwallet2_api_c.dll';
+-  if (Platform.isMacOS) return 'monero_libwallet2_api_c.dylib';
+-  if (Platform.isIOS) return 'MoneroWallet.framework/MoneroWallet';
++  if (Platform.isIOS || Platform.isMacOS) {
++    return 'MoneroWallet.framework/MoneroWallet';
++  }
+   if (Platform.isAndroid) return 'libmonero_libwallet2_api_c.so';
+   return 'monero_libwallet2_api_c.so';
+ })();

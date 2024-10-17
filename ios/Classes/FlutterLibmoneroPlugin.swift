@@ -1,14 +1,19 @@
 import Flutter
 import UIKit
 
-public class SwiftFlutterLibmoneroPlugin: NSObject, FlutterPlugin {
+public class FlutterLibmoneroPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "flutter_libmonero", binaryMessenger: registrar.messenger())
-    let instance = SwiftFlutterLibmoneroPlugin()
+    let instance = FlutterLibmoneroPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-    result("iOS " + UIDevice.current.systemVersion)
+    switch call.method {
+    case "getPlatformVersion":
+      result("iOS " + UIDevice.current.systemVersion)
+    default:
+      result(FlutterMethodNotImplemented)
+    }
   }
 }

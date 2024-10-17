@@ -32,38 +32,16 @@ popd
 unxz -f ../monero_c/release/monero/host-apple-ios_libwallet2_api_c.dylib.xz
 unxz -f ../monero_c/release/wownero/host-apple-ios_libwallet2_api_c.dylib.xz
 
-ln -s $(realpath ../monero_c/release/monero/host-apple-ios_libwallet2_api_c.dylib) ../../../../ios/monero_libwallet2_api_c.dylib || true
-ln -s $(realpath ../monero_c/release/wownero/host-apple-ios_libwallet2_api_c.dylib) ../../../../ios/wownero_libwallet2_api_c.dylib || true
-
-IOS_DIR="../../../../ios/"
-DYLIB_NAME="monero_libwallet2_api_c.dylib"
-DYLIB_LINK_PATH=$(realpath "../monero_c/release/monero/host-apple-ios_libwallet2_api_c.dylib")
-FRWK_DIR="${IOS_DIR}/MoneroWallet.framework"
-
-if [ ! -f $DYLIB_LINK_PATH ]; then
-    echo "Dylib is not found by the link: ${DYLIB_LINK_PATH}"
-    exit 0
-fi
-
-pushd $FRWK_DIR # go to iOS framework dir
-    lipo -create $DYLIB_LINK_PATH -output MoneroWallet
-popd
-echo "Generated ${FRWK_DIR}"
+ # ==================== Monero ======================================================================
+ FRAMEWORK_NAME="MoneroWallet"
+ DYLIB_PATH=$(realpath "../monero_c/release/monero/host-apple-ios_libwallet2_api_c.dylib")
+ ./gen_fw.sh ${FRAMEWORK_NAME} ${DYLIB_PATH}
+ echo "Framework created at ${OUTPUT_DIR}/${FRAMEWORK_NAME}.framework"
 
 
-IOS_DIR="../../../../ios/"
-DYLIB_NAME="wownero_libwallet2_api_c.dylib"
-DYLIB_LINK_PATH=$(realpath "../monero_c/release/wownero/host-apple-ios_libwallet2_api_c.dylib")
-FRWK_DIR="${IOS_DIR}/WowneroWallet.framework"
-
-if [ ! -f $DYLIB_LINK_PATH ]; then
-    echo "Dylib is not found by the link: ${DYLIB_LINK_PATH}"
-    exit 0
-fi
-
-pushd $FRWK_DIR # go to iOS framework dir
-    lipo -create $DYLIB_LINK_PATH -output WowneroWallet
-popd
-
-echo "Generated ${FRWK_DIR}"
+ # ==================== Wownero =====================================================================
+ FRAMEWORK_NAME="WowneroWallet"
+ DYLIB_PATH=$(realpath "../monero_c/release/wownero/host-apple-ios_libwallet2_api_c.dylib")
+ ./gen_fw.sh ${FRAMEWORK_NAME} ${DYLIB_PATH}
+ echo "Framework created at ${OUTPUT_DIR}/${FRAMEWORK_NAME}.framework"
 

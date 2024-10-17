@@ -89,7 +89,7 @@ class _MyAppState extends State<MyApp> {
             ),
           ),
           Text(
-            'Running on: $_platformVersion}',
+            'Running on: $_platformVersion',
           ),
         ],
       ),

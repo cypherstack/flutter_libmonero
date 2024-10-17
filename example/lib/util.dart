@@ -40,6 +40,8 @@ Future<void> printWalletInfo(Wallet wallet) async {
   print("connected: $connected");
   print("outputCount: $outputCount");
   print("txCount: $txCount");
+  print("balance: ${wallet.getBalance()}");
+  print("unlocked: ${wallet.getUnlockedBalance()}");
   print("syncHeight: ${wallet.syncHeight()}");
   print("daemonHeight: ${wallet.getDaemonHeight()}");
   print("mnemonic: ${wallet.getSeed()}");

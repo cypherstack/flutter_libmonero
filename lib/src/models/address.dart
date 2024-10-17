@@ -8,4 +8,9 @@ class Address {
   final String value;
   final int account;
   final int index;
+
+  @override
+  String toString() {
+    return "Address { value: $value, account: $account, index: $index }";
+  }
 }
